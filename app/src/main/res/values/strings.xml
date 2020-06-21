@@ -14,7 +14,7 @@
  limitations under the License.
 -->
 <resources>
-  <string name="tfe_pn_app_name" translation_description="Style transfer demo app built for video [CHAR_LIMIT=40]">TFL Posenet</string>
+  <string name="tfe_pn_app_name" translation_description="Style transfer demo app built for video [CHAR_LIMIT=40]">Video Style Transfer</string>
   <string name="tfe_pn_request_permission" translation_description="Request camera permission [CHAR_LIMIT=40]">This app needs camera permission.</string>
   <string name="tfe_pn_camera_error" translation_description="Error regarding camera support[CHAR_LIMIT=40]">This device doesn\'t support Camera2 API.</string>
 </resources>

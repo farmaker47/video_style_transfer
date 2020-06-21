@@ -28,45 +28,47 @@ import android.widget.ImageView
 import com.george.lite.examples.video_style_transfer.lib.Posenet as Posenet
 
 class TestActivity : AppCompatActivity() {
-  /** Returns a resized bitmap of the drawable image.    */
-  private fun drawableToBitmap(drawable: Drawable): Bitmap {
-    val bitmap = Bitmap.createBitmap(257, 257, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
+    /** Returns a resized bitmap of the drawable image.    */
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        val bitmap = Bitmap.createBitmap(257, 257, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
 
-    drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
 
-    drawable.draw(canvas)
-    return bitmap
-  }
-
-  /** Calls the Posenet library functions.    */
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.tfe_pn_activity_test)
-
-    val sampleImageView = findViewById<ImageView>(R.id.image)
-    val drawedImage = ResourcesCompat.getDrawable(resources,
-        R.drawable.image, null)
-    val imageBitmap = drawableToBitmap(drawedImage!!)
-    sampleImageView.setImageBitmap(imageBitmap)
-    val posenet =
-        Posenet(this.applicationContext)
-    val person = posenet.estimateSinglePose(imageBitmap)
-
-    // Draw the keypoints over the image.
-    val paint = Paint()
-    paint.color = Color.RED
-    val size = 2.0f
-
-    val mutableBitmap = imageBitmap.copy(Bitmap.Config.ARGB_8888, true)
-    val canvas = Canvas(mutableBitmap)
-    for (keypoint in person.keyPoints) {
-      canvas.drawCircle(
-        keypoint.position.x.toFloat(),
-        keypoint.position.y.toFloat(), size, paint
-      )
+        drawable.draw(canvas)
+        return bitmap
     }
-    sampleImageView.adjustViewBounds = true
-    sampleImageView.setImageBitmap(mutableBitmap)
-  }
+
+    /** Calls the Posenet library functions.    */
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.tfe_pn_activity_test)
+
+        val sampleImageView = findViewById<ImageView>(R.id.image)
+        val drawedImage = ResourcesCompat.getDrawable(
+            resources,
+            R.drawable.image, null
+        )
+        val imageBitmap = drawableToBitmap(drawedImage!!)
+        sampleImageView.setImageBitmap(imageBitmap)
+        val posenet =
+            Posenet(this.applicationContext)
+        val person = posenet.estimateSinglePose(imageBitmap)
+
+        // Draw the keypoints over the image.
+        val paint = Paint()
+        paint.color = Color.RED
+        val size = 2.0f
+
+        val mutableBitmap = imageBitmap.copy(Bitmap.Config.ARGB_8888, true)
+        val canvas = Canvas(mutableBitmap)
+        for (keypoint in person.keyPoints) {
+            canvas.drawCircle(
+                keypoint.position.x.toFloat(),
+                keypoint.position.y.toFloat(), size, paint
+            )
+        }
+        sampleImageView.adjustViewBounds = true
+        sampleImageView.setImageBitmap(mutableBitmap)
+    }
 }
