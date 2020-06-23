@@ -291,7 +291,7 @@ class StyleTransferActivity :
                 // We don't use a front facing camera in this sample.
                 val cameraDirection = characteristics.get(CameraCharacteristics.LENS_FACING)
                 if (cameraDirection != null &&
-                    cameraDirection == CameraCharacteristics.LENS_FACING_FRONT
+                    cameraDirection == CameraCharacteristics.LENS_FACING_BACK
                 ) {
                     continue
                 }
@@ -451,7 +451,7 @@ class StyleTransferActivity :
 
             // Create rotated version for portrait display
             val rotateMatrix = Matrix()
-            rotateMatrix.postRotate(90.0f)
+            rotateMatrix.postRotate(270.0f)
 
             val rotatedBitmap = Bitmap.createBitmap(
                 imageBitmap, 0, 0, previewWidth, previewHeight,
@@ -502,7 +502,7 @@ class StyleTransferActivity :
 
     /** Set the paint color and size.    */
     private fun setPaint() {
-        paint.color = Color.RED
+        paint.color = Color.GREEN
         paint.textSize = 80.0f
         paint.strokeWidth = 8.0f
     }

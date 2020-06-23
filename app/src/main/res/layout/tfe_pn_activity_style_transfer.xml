@@ -33,10 +33,10 @@
       android:layout_alignParentTop="true"
       android:background="@color/tfe_semi_transparent">
 
-    <ImageView
+    <!--<ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/tfl2_logo" />
+        android:src="@drawable/tfl2_logo" />-->
   </androidx.appcompat.widget.Toolbar>
 
 </RelativeLayout>

@@ -51,8 +51,7 @@ class TestActivity : AppCompatActivity() {
         )
         val imageBitmap = drawableToBitmap(drawedImage!!)
         sampleImageView.setImageBitmap(imageBitmap)
-        val posenet =
-            Posenet(this.applicationContext)
+        val posenet = Posenet(this.applicationContext)
         val person = posenet.estimateSinglePose(imageBitmap)
 
         // Draw the keypoints over the image.
