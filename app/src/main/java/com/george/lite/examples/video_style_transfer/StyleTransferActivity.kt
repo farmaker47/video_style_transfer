@@ -56,13 +56,20 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import com.bumptech.glide.Glide
+import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
+import com.george.lite.examples.video_style_transfer.lib.*
+import kotlinx.coroutines.MainScope
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
-import com.george.lite.examples.video_style_transfer.lib.BodyPart
-import com.george.lite.examples.video_style_transfer.lib.Person
-import com.george.lite.examples.video_style_transfer.lib.Posenet
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.async
+import java.util.concurrent.Executors
 
 class StyleTransferActivity :
     Fragment(),
@@ -83,6 +90,13 @@ class StyleTransferActivity :
         Pair(BodyPart.RIGHT_HIP, BodyPart.RIGHT_KNEE),
         Pair(BodyPart.RIGHT_KNEE, BodyPart.RIGHT_ANKLE)
     )
+
+    private lateinit var viewModel: MLExecutionViewModel
+    private val inferenceThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    private val mainScope = MainScope()
+    private lateinit var styleTransferModelExecutor: StyleTransferModelExecutor
+    private var useGPU = false
+    private lateinit var imageViewStyled:ImageView
 
     /** Threshold for confidence score. */
     private val minConfidence = 0.5
@@ -207,11 +221,42 @@ class StyleTransferActivity :
         activity?.runOnUiThread { Toast.makeText(activity, text, Toast.LENGTH_SHORT).show() }
     }
 
+    private lateinit var binding:TfePnActivityStyleTransferBinding
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.tfe_pn_activity_style_transfer, container, false)
+    ): View? {
+
+        binding = TfePnActivityStyleTransferBinding.inflate(inflater)
+        binding.lifecycleOwner = this
+
+        viewModel = ViewModelProviders.of(this)
+            .get(MLExecutionViewModel::class.java)
+
+        mainScope.async(inferenceThread) {
+            styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+            //styleTransferModelExecutor.selectStyle("style0.jpg",activity!!)
+            Log.d(TAG, "Executor created")
+        }
+
+        viewModel.styledBitmap.observe(
+            activity!!,
+            Observer { resultImage ->
+                if (resultImage != null) {
+                    //updateUIWithResults(resultImage)
+                    Glide.with(activity!!)
+                        .load(resultImage.styledImage)
+                        .fitCenter()
+                        .into(binding.imageViewStyled)
+
+                }
+            }
+        )
+
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         surfaceView = view.findViewById(R.id.surfaceView)
@@ -603,9 +648,15 @@ class StyleTransferActivity :
         )
 
         // Perform inference.
-        val person = posenet.estimateSinglePose(scaledBitmap)
-        val canvas: Canvas = surfaceHolder!!.lockCanvas()
-        draw(canvas, person, scaledBitmap)
+        //val person = posenet.estimateSinglePose(scaledBitmap)
+
+        viewModel.onApplyStyle(
+            activity!!, scaledBitmap, "style0.jpg",styleTransferModelExecutor,
+            inferenceThread
+        )
+
+        //val canvas: Canvas = surfaceHolder!!.lockCanvas()
+        //draw(canvas, person, scaledBitmap)
     }
 
     /**

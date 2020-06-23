@@ -13,30 +13,47 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <SurfaceView
-      android:id="@+id/surfaceView"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="0dp"
-      android:layout_alignParentBottom="true"
-      android:layout_alignParentStart="true"
-      android:layout_alignParentTop="true"/>
+  <data>
 
-  <androidx.appcompat.widget.Toolbar
-      android:id="@+id/toolbar"
+  </data>
+
+  <RelativeLayout
       android:layout_width="match_parent"
-      android:layout_height="?attr/actionBarSize"
-      android:layout_alignParentTop="true"
-      android:background="@color/tfe_semi_transparent">
+      android:layout_height="match_parent">
 
-    <!--<ImageView
+    <SurfaceView
+        android:id="@+id/surfaceView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/tfl2_logo" />-->
-  </androidx.appcompat.widget.Toolbar>
+        android:layout_marginBottom="0dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:visibility="invisible"
+        android:layout_alignParentTop="true" />
 
-</RelativeLayout>
+
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true"
+        android:background="@color/tfe_semi_transparent">
+
+      <!--<ImageView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/tfl2_logo" />-->
+    </androidx.appcompat.widget.Toolbar>
+
+    <ImageView
+        android:id="@+id/imageViewStyled"
+        android:layout_width="200dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_height="200dp" />
+
+  </RelativeLayout>
+</layout>

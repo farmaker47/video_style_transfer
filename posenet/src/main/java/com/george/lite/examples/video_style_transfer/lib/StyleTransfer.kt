@@ -40,6 +40,9 @@ class StyleTransferModelExecutor(
     private var stylePredictTime = 0L
     private var styleTransferTime = 0L
     private var postProcessTime = 0L
+    private lateinit var inputsForPredict: Array<Any>
+    private lateinit var outputsForPredict:HashMap<Int, Any>
+    private lateinit var styleBottleneck:Array<Any>
 
     init {
         if (useGPU) {
@@ -62,20 +65,50 @@ class StyleTransferModelExecutor(
         private const val STYLE_TRANSFER_FLOAT16_MODEL = "style_transfer_f16_384.tflite"
     }
 
+    fun selectStyle(
+        styleImageName: String,
+        context: Context
+    ) {
+
+        val styleBitmap =
+            ImageUtils.loadBitmapFromResources(context, "thumbnails/$styleImageName")
+        val input =
+            ImageUtils.bitmapToByteBuffer(styleBitmap, STYLE_IMAGE_SIZE, STYLE_IMAGE_SIZE)
+
+        inputsForPredict = arrayOf(input)
+        outputsForPredict = HashMap()
+        styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
+        outputsForPredict[0] = styleBottleneck
+        preProcessTime = SystemClock.uptimeMillis() - preProcessTime
+
+        stylePredictTime = SystemClock.uptimeMillis()
+        // The results of this inference could be reused given the style does not change
+        // That would be a good practice in case this was applied to a video stream.
+        interpreterPredict.runForMultipleInputsOutputs(inputsForPredict, outputsForPredict)
+        stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
+        Log.d(TAG, "Style Predict Time to run: $stylePredictTime")
+
+    }
+
     fun execute(
         contentImageBitmap: Bitmap,
         styleImageName: String,
         context: Context
     ): ModelExecutionResult {
         try {
-            Log.i(TAG, "running models")
+            Log.e(TAG, "running models")
 
             fullExecutionTime = SystemClock.uptimeMillis()
             preProcessTime = SystemClock.uptimeMillis()
 
             //val contentImage = ImageUtils.decodeBitmap(File(contentImagePath))
             val contentArray =
-                ImageUtils.bitmapToByteBuffer(contentImageBitmap, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE)
+                ImageUtils.bitmapToByteBuffer(
+                    contentImageBitmap,
+                    CONTENT_IMAGE_SIZE,
+                    CONTENT_IMAGE_SIZE
+                )
+
             val styleBitmap =
                 ImageUtils.loadBitmapFromResources(context, "thumbnails/$styleImageName")
             val input =
@@ -106,7 +139,7 @@ class StyleTransferModelExecutor(
                 outputsForStyleTransfer
             )
             styleTransferTime = SystemClock.uptimeMillis() - styleTransferTime
-            Log.d(TAG, "Style apply Time to run: $styleTransferTime")
+            Log.e(TAG, "Style apply Time to run: $styleTransferTime")
 
             postProcessTime = SystemClock.uptimeMillis()
             var styledImage =
@@ -114,7 +147,7 @@ class StyleTransferModelExecutor(
             postProcessTime = SystemClock.uptimeMillis() - postProcessTime
 
             fullExecutionTime = SystemClock.uptimeMillis() - fullExecutionTime
-            Log.d(TAG, "Time to run everything: $fullExecutionTime")
+            Log.e("STYLE_SOLOUPIS", "Time to run everything: $fullExecutionTime")
 
             return ModelExecutionResult(
                 styledImage,
