@@ -21,14 +21,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.ImageFormat
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.Rect
+import android.graphics.*
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
@@ -244,19 +237,30 @@ class StyleTransferActivity :
         viewModel.styledBitmap.observe(
             activity!!,
             Observer { resultImage ->
+
+                Glide.with(activity!!)
+                    .load(resultImage.styledImage)
+                    .fitCenter()
+                    .into(binding.imageViewStyled)
                 if (resultImage != null) {
                     //updateUIWithResults(resultImage)
-                    Glide.with(activity!!)
+                    /*Glide.with(activity!!)
                         .load(resultImage.styledImage)
                         .fitCenter()
-                        .into(binding.imageViewStyled)
+                        .into(binding.imageViewStyled)*/
+                    //binding.imageViewStyled.setImageBitmap(getBitmapFromAsset(activity!!,"style0.jpg"))
 
                 }
             }
         )
 
+        //binding.imageViewStyled.setImageBitmap(getBitmapFromAsset(activity!!,"style0.jpg"))
+
         return binding.root
     }
+
+    private fun getBitmapFromAsset(context: Context, path: String): Bitmap =
+        context.assets.open(path).use { BitmapFactory.decodeStream(it) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         surfaceView = view.findViewById(R.id.surfaceView)
@@ -648,15 +652,15 @@ class StyleTransferActivity :
         )
 
         // Perform inference.
-        //val person = posenet.estimateSinglePose(scaledBitmap)
+        val person = posenet.estimateSinglePose(scaledBitmap)
 
         viewModel.onApplyStyle(
-            activity!!, scaledBitmap, "style0.jpg",styleTransferModelExecutor,
+            activity!!, scaledBitmap, "style1.jpg",styleTransferModelExecutor,
             inferenceThread
         )
 
-        //val canvas: Canvas = surfaceHolder!!.lockCanvas()
-        //draw(canvas, person, scaledBitmap)
+        val canvas: Canvas = surfaceHolder!!.lockCanvas()
+        draw(canvas, person, scaledBitmap)
     }
 
     /**
