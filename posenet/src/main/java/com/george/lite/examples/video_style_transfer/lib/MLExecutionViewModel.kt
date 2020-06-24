@@ -35,7 +35,8 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
                 styleTransferModelExecutor.execute(contentBitmap, styleFilePath, context)
 
             Log.e("TIME", result.styleTransferTime.toString())
-            Log.e("BITMAP", result.styledImage.width.toString())
+
+
             _styledBitmap.postValue(result)
         }
     }

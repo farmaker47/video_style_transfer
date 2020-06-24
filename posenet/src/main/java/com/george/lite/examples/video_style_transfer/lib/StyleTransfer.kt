@@ -40,9 +40,11 @@ class StyleTransferModelExecutor(
     private var stylePredictTime = 0L
     private var styleTransferTime = 0L
     private var postProcessTime = 0L
+
+    // Variables that required to run only once at the beggining
     private lateinit var inputsForPredict: Array<Any>
-    private lateinit var outputsForPredict:HashMap<Int, Any>
-    private lateinit var styleBottleneck:Array<Any>
+    private lateinit var outputsForPredict: HashMap<Int, Any>
+    private var styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
 
     init {
         if (useGPU) {
@@ -54,6 +56,8 @@ class StyleTransferModelExecutor(
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, true)
             Log.e("GPU_FALSE", "FALSE")
         }
+
+
     }
 
     companion object {
@@ -79,7 +83,7 @@ class StyleTransferModelExecutor(
 
         inputsForPredict = arrayOf(input)
         outputsForPredict = HashMap()
-        styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
+        //val styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
         outputsForPredict[0] = styleBottleneck
         preProcessTime = SystemClock.uptimeMillis() - preProcessTime
 
@@ -88,7 +92,7 @@ class StyleTransferModelExecutor(
         // That would be a good practice in case this was applied to a video stream.
         interpreterPredict.runForMultipleInputsOutputs(inputsForPredict, outputsForPredict)
         stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
-        Log.d(TAG, "Style Predict Time to run: $stylePredictTime")
+        Log.e("PREDICT", "Style Predict Time to run: $stylePredictTime")
 
     }
 
@@ -111,7 +115,7 @@ class StyleTransferModelExecutor(
                     CONTENT_IMAGE_SIZE
                 )
 
-            val styleBitmap =
+            /*val styleBitmap =
                 ImageUtils.loadBitmapFromResources(context, "thumbnails/$styleImageName")
             val input =
                 ImageUtils.bitmapToByteBuffer(styleBitmap, STYLE_IMAGE_SIZE, STYLE_IMAGE_SIZE)
@@ -126,8 +130,8 @@ class StyleTransferModelExecutor(
             // The results of this inference could be reused given the style does not change
             // That would be a good practice in case this was applied to a video stream.
             interpreterPredict.runForMultipleInputsOutputs(inputsForPredict, outputsForPredict)
-            stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
-            Log.d(TAG, "Style Predict Time to run: $stylePredictTime")
+            stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime*/
+            //Log.e(TAG, "Style Predict Time to run: $stylePredictTime")
 
             val inputsForStyleTransfer = arrayOf(contentArray, styleBottleneck)
             val outputsForStyleTransfer = HashMap<Int, Any>()
@@ -144,7 +148,7 @@ class StyleTransferModelExecutor(
             Log.e(TAG, "Style apply Time to run: $styleTransferTime")
 
             postProcessTime = SystemClock.uptimeMillis()
-            var styledImage =
+            val styledImage =
                 ImageUtils.convertArrayToBitmap(outputImage, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE)
             postProcessTime = SystemClock.uptimeMillis() - postProcessTime
 

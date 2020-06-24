@@ -230,7 +230,7 @@ class StyleTransferActivity :
 
         mainScope.async(inferenceThread) {
             styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, false)
-            //styleTransferModelExecutor.selectStyle("style0.jpg",activity!!)
+            //styleTransferModelExecutor.selectStyle("kate.jpg", activity!!)
             Log.d(TAG, "Executor created")
         }
 
@@ -271,6 +271,8 @@ class StyleTransferActivity :
     override fun onResume() {
         super.onResume()
         startBackgroundThread()
+
+        styleTransferModelExecutor.selectStyle("kate.jpg", activity!!)
     }
 
     override fun onStart() {
