@@ -27,7 +27,7 @@ data class ModelExecutionResult(
 @SuppressWarnings("GoodTime")
 class StyleTransferModelExecutor(
     context: Context,
-    private var useGPU: Boolean = false
+    private var useGPU: Boolean
 ) {
     private var gpuDelegate: GpuDelegate? = null
     private var numberThreads = 4
@@ -48,9 +48,11 @@ class StyleTransferModelExecutor(
         if (useGPU) {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_FLOAT16_MODEL, true)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_FLOAT16_MODEL, true)
+            Log.e("GPU_TRUE", "TRUE")
         } else {
-            interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT8_MODEL, false)
-            interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, false)
+            interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT8_MODEL, true)
+            interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, true)
+            Log.e("GPU_FALSE", "FALSE")
         }
     }
 
@@ -189,12 +191,12 @@ class StyleTransferModelExecutor(
     private fun getInterpreter(
         context: Context,
         modelName: String,
-        useGpu: Boolean = false
+        useGpu: Boolean
     ): Interpreter {
         val tfliteOptions = Interpreter.Options()
-        tfliteOptions.setNumThreads(numberThreads)
+        //tfliteOptions.setNumThreads(numberThreads)
 
-        gpuDelegate = null
+        //gpuDelegate = null
         if (useGpu) {
             gpuDelegate = GpuDelegate()
             tfliteOptions.addDelegate(gpuDelegate)

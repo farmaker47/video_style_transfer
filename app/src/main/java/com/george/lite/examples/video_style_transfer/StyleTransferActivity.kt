@@ -89,7 +89,7 @@ class StyleTransferActivity :
     private val mainScope = MainScope()
     private lateinit var styleTransferModelExecutor: StyleTransferModelExecutor
     private var useGPU = false
-    private lateinit var imageViewStyled:ImageView
+    private lateinit var imageViewStyled: ImageView
 
     /** Threshold for confidence score. */
     private val minConfidence = 0.5
@@ -214,7 +214,7 @@ class StyleTransferActivity :
         activity?.runOnUiThread { Toast.makeText(activity, text, Toast.LENGTH_SHORT).show() }
     }
 
-    private lateinit var binding:TfePnActivityStyleTransferBinding
+    private lateinit var binding: TfePnActivityStyleTransferBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -229,7 +229,7 @@ class StyleTransferActivity :
             .get(MLExecutionViewModel::class.java)
 
         mainScope.async(inferenceThread) {
-            styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+            styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, false)
             //styleTransferModelExecutor.selectStyle("style0.jpg",activity!!)
             Log.d(TAG, "Executor created")
         }
@@ -238,10 +238,10 @@ class StyleTransferActivity :
             activity!!,
             Observer { resultImage ->
 
-                Glide.with(activity!!)
+                /*Glide.with(activity!!)
                     .load(resultImage.styledImage)
                     .fitCenter()
-                    .into(binding.imageViewStyled)
+                    .into(binding.imageViewStyled)*/
                 if (resultImage != null) {
                     //updateUIWithResults(resultImage)
                     /*Glide.with(activity!!)
@@ -249,6 +249,7 @@ class StyleTransferActivity :
                         .fitCenter()
                         .into(binding.imageViewStyled)*/
                     //binding.imageViewStyled.setImageBitmap(getBitmapFromAsset(activity!!,"style0.jpg"))
+                    binding.imageViewStyled.setImageBitmap(resultImage.styledImage)
 
                 }
             }
@@ -281,6 +282,7 @@ class StyleTransferActivity :
     override fun onPause() {
         closeCamera()
         stopBackgroundThread()
+        styleTransferModelExecutor.close()
         super.onPause()
     }
 
@@ -652,15 +654,15 @@ class StyleTransferActivity :
         )
 
         // Perform inference.
-        val person = posenet.estimateSinglePose(scaledBitmap)
+        //val person = posenet.estimateSinglePose(scaledBitmap)
 
         viewModel.onApplyStyle(
-            activity!!, scaledBitmap, "style1.jpg",styleTransferModelExecutor,
+            activity!!, scaledBitmap, "kate.jpg", styleTransferModelExecutor,
             inferenceThread
         )
 
-        val canvas: Canvas = surfaceHolder!!.lockCanvas()
-        draw(canvas, person, scaledBitmap)
+        //val canvas: Canvas = surfaceHolder!!.lockCanvas()
+        //draw(canvas, person, scaledBitmap)
     }
 
     /**

@@ -48,9 +48,8 @@
         <ImageView
             android:id="@+id/imageViewStyled"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true" />
+            android:layout_height="400dp"
+            android:layout_centerHorizontal="true" />
 
     </RelativeLayout>
 </layout>
