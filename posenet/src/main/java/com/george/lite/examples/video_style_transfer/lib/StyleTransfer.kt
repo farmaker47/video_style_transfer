@@ -29,7 +29,7 @@ class StyleTransferModelExecutor(
     context: Context,
     private var useGPU: Boolean
 ) {
-    private var gpuDelegate: GpuDelegate? = null
+    private var gpuDelegate: GpuDelegate = GpuDelegate()
     private var numberThreads = 4
 
     private val interpreterPredict: Interpreter
@@ -50,11 +50,11 @@ class StyleTransferModelExecutor(
         if (useGPU) {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_FLOAT16_MODEL, true)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_FLOAT16_MODEL, true)
-            Log.e("GPU_TRUE", "TRUE")
+            Log.i("GPU_TRUE", "TRUE")
         } else {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT8_MODEL, true)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, true)
-            Log.e("GPU_FALSE", "FALSE")
+            Log.i("GPU_FALSE", "FALSE")
         }
 
 
@@ -92,7 +92,7 @@ class StyleTransferModelExecutor(
         // That would be a good practice in case this was applied to a video stream.
         interpreterPredict.runForMultipleInputsOutputs(inputsForPredict, outputsForPredict)
         stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
-        Log.e("PREDICT", "Style Predict Time to run: $stylePredictTime")
+        Log.i("PREDICT", "Style Predict Time to run: $stylePredictTime")
 
     }
 
@@ -102,7 +102,7 @@ class StyleTransferModelExecutor(
         context: Context
     ): ModelExecutionResult {
         try {
-            Log.e(TAG, "running models")
+            Log.i(TAG, "running models")
 
             fullExecutionTime = SystemClock.uptimeMillis()
             preProcessTime = SystemClock.uptimeMillis()
@@ -145,12 +145,13 @@ class StyleTransferModelExecutor(
                 outputsForStyleTransfer
             )
             styleTransferTime = SystemClock.uptimeMillis() - styleTransferTime
-            Log.e(TAG, "Style apply Time to run: $styleTransferTime")
+            Log.i(TAG, "Style apply Time to run: $styleTransferTime")
 
             postProcessTime = SystemClock.uptimeMillis()
             val styledImage =
                 ImageUtils.convertArrayToBitmap(outputImage, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE)
             postProcessTime = SystemClock.uptimeMillis() - postProcessTime
+            Log.i(TAG, "Post process time: $postProcessTime")
 
             fullExecutionTime = SystemClock.uptimeMillis() - fullExecutionTime
             Log.e("STYLE_SOLOUPIS", "Time to run everything: $fullExecutionTime")
@@ -204,6 +205,10 @@ class StyleTransferModelExecutor(
         if (useGpu) {
             gpuDelegate = GpuDelegate()
             tfliteOptions.addDelegate(gpuDelegate)
+
+            //val delegate =
+                //GpuDelegate(GpuDelegate.Options().setQuantizedModelsAllowed(true))
+
         }
 
         tfliteOptions.setNumThreads(numberThreads)

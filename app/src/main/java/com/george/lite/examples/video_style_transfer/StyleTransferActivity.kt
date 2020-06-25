@@ -272,7 +272,7 @@ class StyleTransferActivity :
         super.onResume()
         startBackgroundThread()
 
-        styleTransferModelExecutor.selectStyle("kate.jpg", activity!!)
+        styleTransferModelExecutor.selectStyle("style1.jpg", activity!!)
     }
 
     override fun onStart() {

@@ -3,15 +3,11 @@ package com.george.lite.examples.video_style_transfer.lib
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+//import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.*
 
 class MLExecutionViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -33,11 +29,18 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch(inferenceThread) {
             val result =
                 styleTransferModelExecutor.execute(contentBitmap, styleFilePath, context)
-
-            Log.e("TIME", result.styleTransferTime.toString())
-
-
             _styledBitmap.postValue(result)
         }
+
+        // Initialize Interpreter
+        /*viewModelScope.launch {
+            initializeInterpreter(app)
+        }*/
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        viewModelJob.cancel()
+    }
+
 }
