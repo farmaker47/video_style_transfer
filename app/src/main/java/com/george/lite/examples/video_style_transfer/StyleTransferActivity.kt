@@ -90,6 +90,7 @@ class StyleTransferActivity :
     private lateinit var styleTransferModelExecutor: StyleTransferModelExecutor
     private var useGPU = false
     private lateinit var imageViewStyled: ImageView
+    private var doneInference = true
 
     /** Threshold for confidence score. */
     private val minConfidence = 0.5
@@ -237,11 +238,6 @@ class StyleTransferActivity :
         viewModel.styledBitmap.observe(
             activity!!,
             Observer { resultImage ->
-
-                /*Glide.with(activity!!)
-                    .load(resultImage.styledImage)
-                    .fitCenter()
-                    .into(binding.imageViewStyled)*/
                 if (resultImage != null) {
                     //updateUIWithResults(resultImage)
                     /*Glide.with(activity!!)
@@ -252,6 +248,14 @@ class StyleTransferActivity :
                     binding.imageViewStyled.setImageBitmap(resultImage.styledImage)
 
                 }
+            }
+        )
+
+        viewModel.inferenceDone.observe(
+            activity!!,
+            Observer { inferenceIsDone ->
+                doneInference = inferenceIsDone
+
             }
         )
 
@@ -528,6 +532,7 @@ class StyleTransferActivity :
         // Checks if the bitmap has similar aspect ratio as the required model input.
         when {
             abs(modelInputRatio - bitmapRatio) < maxDifference -> return croppedBitmap
+
             modelInputRatio < bitmapRatio -> {
                 // New image is taller so we are height constrained.
                 val cropHeight = bitmap.height - (bitmap.width.toFloat() / modelInputRatio)
@@ -643,7 +648,7 @@ class StyleTransferActivity :
         surfaceHolder!!.unlockCanvasAndPost(canvas)
     }
 
-    /** Process image using Posenet library.   */
+    /** Process image using StyleTransfer library.   */
     private fun processImage(bitmap: Bitmap) {
         // Crop bitmap.
         val croppedBitmap = cropBitmap(bitmap)
@@ -658,10 +663,12 @@ class StyleTransferActivity :
         // Perform inference.
         //val person = posenet.estimateSinglePose(scaledBitmap)
 
-        viewModel.onApplyStyle(
-            activity!!, scaledBitmap, "kate.jpg", styleTransferModelExecutor,
-            inferenceThread
-        )
+        if(doneInference){
+            viewModel.onApplyStyle(
+                activity!!, scaledBitmap, "kate.jpg", styleTransferModelExecutor,
+                inferenceThread
+            )
+        }
 
         //val canvas: Canvas = surfaceHolder!!.lockCanvas()
         //draw(canvas, person, scaledBitmap)
