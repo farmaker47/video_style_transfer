@@ -53,6 +53,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
 import com.george.lite.examples.video_style_transfer.lib.*
@@ -66,7 +67,8 @@ import java.util.concurrent.Executors
 
 class StyleTransferActivity :
     Fragment(),
-    ActivityCompat.OnRequestPermissionsResultCallback {
+    ActivityCompat.OnRequestPermissionsResultCallback,
+    SearchFragmentNavigationAdapter.SearchClickItemListener{
 
     /** List of body joints that should be connected.    */
     private val bodyJoints = listOf(
@@ -91,6 +93,8 @@ class StyleTransferActivity :
     private var useGPU = false
     private lateinit var imageViewStyled: ImageView
     private var doneInference = true
+
+    private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
 
     /** Threshold for confidence score. */
     private val minConfidence = 0.5
@@ -229,6 +233,14 @@ class StyleTransferActivity :
         viewModel = ViewModelProviders.of(this)
             .get(MLExecutionViewModel::class.java)
 
+        // RecyclerView setup
+        binding.recyclerViewStyles.setHasFixedSize(true)
+        binding.recyclerViewStyles.layoutManager =
+            LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+        mSearchFragmentNavigationAdapter =
+            SearchFragmentNavigationAdapter(activity!!, viewModel.currentList, this)
+        binding.recyclerViewStyles.adapter = mSearchFragmentNavigationAdapter
+
         mainScope.async(inferenceThread) {
             styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, false)
             //styleTransferModelExecutor.selectStyle("kate.jpg", activity!!)
@@ -255,7 +267,6 @@ class StyleTransferActivity :
             activity!!,
             Observer { inferenceIsDone ->
                 doneInference = inferenceIsDone
-
             }
         )
 
@@ -786,5 +797,9 @@ class StyleTransferActivity :
          * Tag for the [Log].
          */
         private const val TAG = "StyleTransferActivity"
+    }
+
+    override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String?) {
+        //TODO("Not yet implemented")
     }
 }

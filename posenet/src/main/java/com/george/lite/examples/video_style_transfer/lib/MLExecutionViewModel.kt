@@ -19,12 +19,20 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
     val inferenceDone: LiveData<Boolean>
         get() = _inferenceDone
 
+    private var _currentList: ArrayList<String> = ArrayList()
+    val currentList: ArrayList<String>
+        get() = _currentList
+
 
     private val viewModelJob = Job()
     private val viewModelScope = CoroutineScope(viewModelJob)
 
     init {
         _inferenceDone.value = true
+
+        // Create list of styles
+        //val styles = ArrayList<String>()
+        _currentList.addAll(application.assets.list("thumbnails")!!)
     }
 
     fun onApplyStyle(

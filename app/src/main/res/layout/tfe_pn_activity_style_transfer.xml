@@ -48,8 +48,17 @@
         <ImageView
             android:id="@+id/imageViewStyled"
             android:layout_width="match_parent"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:layout_height="400dp"
             android:layout_centerHorizontal="true" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewStyles"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:layout_below="@id/imageViewStyled"/>
 
     </RelativeLayout>
 </layout>
