@@ -68,7 +68,7 @@ import java.util.concurrent.Executors
 class StyleTransferActivity :
     Fragment(),
     ActivityCompat.OnRequestPermissionsResultCallback,
-    SearchFragmentNavigationAdapter.SearchClickItemListener{
+    SearchFragmentNavigationAdapter.SearchClickItemListener {
 
     /** List of body joints that should be connected.    */
     private val bodyJoints = listOf(
@@ -674,7 +674,7 @@ class StyleTransferActivity :
         // Perform inference.
         //val person = posenet.estimateSinglePose(scaledBitmap)
 
-        if(doneInference){
+        if (doneInference) {
             viewModel.onApplyStyle(
                 activity!!, scaledBitmap, "kate.jpg", styleTransferModelExecutor,
                 inferenceThread
@@ -799,7 +799,9 @@ class StyleTransferActivity :
         private const val TAG = "StyleTransferActivity"
     }
 
-    override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String?) {
-        //TODO("Not yet implemented")
+    override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
+
+        Log.e("String", type)
+        styleTransferModelExecutor.selectStyle(type, activity!!)
     }
 }

@@ -26,7 +26,7 @@ class SearchFragmentNavigationAdapter(
         fun onListItemClick(
             itemIndex: Int,
             sharedImage: ImageView?,
-            type: String?
+            type: String
         )
     }
 
