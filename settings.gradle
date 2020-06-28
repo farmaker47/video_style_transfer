@@ -1,1 +1,1 @@
-include ':app', ':posenet'
+include ':app', ':styleTransferModule'

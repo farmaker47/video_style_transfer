@@ -18,11 +18,6 @@
         android:theme="@style/AppTheme.VideoStyleTransfer">
 
         <activity
-            android:name="com.george.lite.examples.video_style_transfer.TestActivity"
-            android:exported="true"
-            android:label="@string/tfe_pn_app_name"/>
-
-        <activity
             android:name="com.george.lite.examples.video_style_transfer.CameraActivity"
             android:exported="true">
             <intent-filter>

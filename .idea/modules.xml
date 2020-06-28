@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="video_style_transfer/app" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/posenet/posenet.iml" filepath="$PROJECT_DIR$/.idea/modules/posenet/posenet.iml" group="video_style_transfer/posenet" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/styleTransferModule/styleTransferModule.iml" filepath="$PROJECT_DIR$/.idea/modules/styleTransferModule/styleTransferModule.iml" group="video_style_transfer/styleTransferModule" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/video_style_transfer.iml" filepath="$PROJECT_DIR$/.idea/modules/video_style_transfer.iml" group="video_style_transfer" />
     </modules>
   </component>

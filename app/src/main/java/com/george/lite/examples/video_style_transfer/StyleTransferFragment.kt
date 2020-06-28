@@ -70,7 +70,7 @@ class StyleTransferFragment :
     SearchFragmentNavigationAdapter.SearchClickItemListener {
 
     /** List of body joints that should be connected.    */
-    private val bodyJoints = listOf(
+    /*private val bodyJoints = listOf(
         Pair(BodyPart.LEFT_WRIST, BodyPart.LEFT_ELBOW),
         Pair(BodyPart.LEFT_ELBOW, BodyPart.LEFT_SHOULDER),
         Pair(BodyPart.LEFT_SHOULDER, BodyPart.RIGHT_SHOULDER),
@@ -83,7 +83,7 @@ class StyleTransferFragment :
         Pair(BodyPart.LEFT_KNEE, BodyPart.LEFT_ANKLE),
         Pair(BodyPart.RIGHT_HIP, BodyPart.RIGHT_KNEE),
         Pair(BodyPart.RIGHT_KNEE, BodyPart.RIGHT_ANKLE)
-    )
+    )*/
 
     private lateinit var viewModel: MLExecutionViewModel
     private val inferenceThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
@@ -107,9 +107,6 @@ class StyleTransferFragment :
     /** A shape for extracting frame data.   */
     private val PREVIEW_WIDTH = 640
     private val PREVIEW_HEIGHT = 480
-
-    /** An object for the Posenet library.    */
-    private lateinit var posenet: Posenet
 
     /** ID of the current [CameraDevice].   */
     private var cameraId: String? = null
@@ -307,7 +304,6 @@ class StyleTransferFragment :
     override fun onStart() {
         super.onStart()
         openCamera()
-        posenet = Posenet(this.context!!)
     }
 
     override fun onPause() {
@@ -319,7 +315,6 @@ class StyleTransferFragment :
     override fun onDestroy() {
         super.onDestroy()
         styleTransferModelExecutor.close()
-        posenet.close()
     }
 
     private fun requestCameraPermission() {
@@ -590,89 +585,6 @@ class StyleTransferFragment :
         paint.strokeWidth = 8.0f
     }
 
-    /** Draw bitmap on Canvas.   */
-    private fun draw(canvas: Canvas, person: Person, bitmap: Bitmap) {
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-        // Draw `bitmap` and `person` in square canvas.
-        val screenWidth: Int
-        val screenHeight: Int
-        val left: Int
-        val right: Int
-        val top: Int
-        val bottom: Int
-        if (canvas.height > canvas.width) {
-            screenWidth = canvas.width
-            screenHeight = canvas.width
-            left = 0
-            top = (canvas.height - canvas.width) / 2
-        } else {
-            screenWidth = canvas.height
-            screenHeight = canvas.height
-            left = (canvas.width - canvas.height) / 2
-            top = 0
-        }
-        right = left + screenWidth
-        bottom = top + screenHeight
-
-        setPaint()
-        canvas.drawBitmap(
-            bitmap,
-            Rect(0, 0, bitmap.width, bitmap.height),
-            Rect(left, top, right, bottom),
-            paint
-        )
-
-        val widthRatio = screenWidth.toFloat() / MODEL_WIDTH
-        val heightRatio = screenHeight.toFloat() / MODEL_HEIGHT
-
-        // Draw key points over the image.
-        for (keyPoint in person.keyPoints) {
-            if (keyPoint.score > minConfidence) {
-                val position = keyPoint.position
-                val adjustedX: Float = position.x.toFloat() * widthRatio + left
-                val adjustedY: Float = position.y.toFloat() * heightRatio + top
-                canvas.drawCircle(adjustedX, adjustedY, circleRadius, paint)
-            }
-        }
-
-        for (line in bodyJoints) {
-            if (
-                (person.keyPoints[line.first.ordinal].score > minConfidence) and
-                (person.keyPoints[line.second.ordinal].score > minConfidence)
-            ) {
-                canvas.drawLine(
-                    person.keyPoints[line.first.ordinal].position.x.toFloat() * widthRatio + left,
-                    person.keyPoints[line.first.ordinal].position.y.toFloat() * heightRatio + top,
-                    person.keyPoints[line.second.ordinal].position.x.toFloat() * widthRatio + left,
-                    person.keyPoints[line.second.ordinal].position.y.toFloat() * heightRatio + top,
-                    paint
-                )
-            }
-        }
-
-        canvas.drawText(
-            "Score: %.2f".format(person.score),
-            (15.0f * widthRatio),
-            (30.0f * heightRatio + bottom),
-            paint
-        )
-        canvas.drawText(
-            "Device: %s".format(posenet.device),
-            (15.0f * widthRatio),
-            (50.0f * heightRatio + bottom),
-            paint
-        )
-        canvas.drawText(
-            "Time: %.2f ms".format(posenet.lastInferenceTimeNanos * 1.0f / 1_000_000),
-            (15.0f * widthRatio),
-            (70.0f * heightRatio + bottom),
-            paint
-        )
-
-        // Draw!
-        surfaceHolder!!.unlockCanvasAndPost(canvas)
-    }
-
     /** Process image using StyleTransfer library.   */
     private fun processImage(bitmap: Bitmap) {
         // Crop bitmap.
@@ -685,9 +597,6 @@ class StyleTransferFragment :
             MODEL_HEIGHT, true
         )
 
-        // Perform inference.
-        //val person = posenet.estimateSinglePose(scaledBitmap)
-
         if (doneInference) {
             viewModel.onApplyStyle(
                 activity!!, scaledBitmap, "zkate.jpg", styleTransferModelExecutor,
@@ -695,8 +604,6 @@ class StyleTransferFragment :
             )
         }
 
-        //val canvas: Canvas = surfaceHolder!!.lockCanvas()
-        //draw(canvas, person, scaledBitmap)
     }
 
     /**
