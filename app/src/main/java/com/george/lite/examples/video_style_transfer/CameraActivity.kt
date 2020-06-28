@@ -28,7 +28,7 @@ class CameraActivity : AppCompatActivity() {
         savedInstanceState ?: supportFragmentManager.beginTransaction()
             .replace(
                 R.id.container,
-                StyleTransferActivity()
+                StyleTransferFragment()
             )
             .commit()
     }

@@ -54,7 +54,6 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
 import com.george.lite.examples.video_style_transfer.lib.*
 import kotlinx.coroutines.MainScope
@@ -65,7 +64,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import java.util.concurrent.Executors
 
-class StyleTransferActivity :
+class StyleTransferFragment :
     Fragment(),
     ActivityCompat.OnRequestPermissionsResultCallback,
     SearchFragmentNavigationAdapter.SearchClickItemListener {
@@ -174,19 +173,19 @@ class StyleTransferActivity :
 
         override fun onOpened(cameraDevice: CameraDevice) {
             cameraOpenCloseLock.release()
-            this@StyleTransferActivity.cameraDevice = cameraDevice
+            this@StyleTransferFragment.cameraDevice = cameraDevice
             createCameraPreviewSession()
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
             cameraOpenCloseLock.release()
             cameraDevice.close()
-            this@StyleTransferActivity.cameraDevice = null
+            this@StyleTransferFragment.cameraDevice = null
         }
 
         override fun onError(cameraDevice: CameraDevice, error: Int) {
             onDisconnected(cameraDevice)
-            this@StyleTransferActivity.activity?.finish()
+            this@StyleTransferFragment.activity?.finish()
         }
     }
 
@@ -242,8 +241,8 @@ class StyleTransferActivity :
         binding.recyclerViewStyles.adapter = mSearchFragmentNavigationAdapter
 
         mainScope.async(inferenceThread) {
-            styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, false)
-            //styleTransferModelExecutor.selectStyle("kate.jpg", activity!!)
+            styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+            //styleTransferModelExecutor.selectStyle("zkate.jpg", activity!!)
             Log.d(TAG, "Executor created")
         }
 
@@ -272,6 +271,21 @@ class StyleTransferActivity :
 
         //binding.imageViewStyled.setImageBitmap(getBitmapFromAsset(activity!!,"style0.jpg"))
 
+        // GPU switch
+        binding.switchUseGpu.setOnCheckedChangeListener { _, isChecked ->
+            useGPU = isChecked
+            binding.progressBar.visibility = View.VISIBLE
+
+            // Reinitialize TF Lite models with new GPU setting
+            mainScope.async(inferenceThread) {
+                styleTransferModelExecutor.close()
+                styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+
+                styleTransferModelExecutor.selectStyle("mona.JPG", activity!!)
+                binding.progressBar.visibility = View.INVISIBLE
+            }
+        }
+
         return binding.root
     }
 
@@ -299,12 +313,12 @@ class StyleTransferActivity :
     override fun onPause() {
         closeCamera()
         stopBackgroundThread()
-        styleTransferModelExecutor.close()
         super.onPause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        styleTransferModelExecutor.close()
         posenet.close()
     }
 
@@ -405,7 +419,7 @@ class StyleTransferActivity :
     }
 
     /**
-     * Opens the camera specified by [StyleTransferActivity.cameraId].
+     * Opens the camera specified by [StyleTransferFragment.cameraId].
      */
     private fun openCamera() {
         val permissionCamera = getContext()!!.checkPermission(
@@ -676,7 +690,7 @@ class StyleTransferActivity :
 
         if (doneInference) {
             viewModel.onApplyStyle(
-                activity!!, scaledBitmap, "kate.jpg", styleTransferModelExecutor,
+                activity!!, scaledBitmap, "zkate.jpg", styleTransferModelExecutor,
                 inferenceThread
             )
         }
@@ -796,12 +810,18 @@ class StyleTransferActivity :
         /**
          * Tag for the [Log].
          */
-        private const val TAG = "StyleTransferActivity"
+        private const val TAG = "StyleTransferFragment"
     }
 
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
-
-        Log.e("String", type)
+        Log.i("String", type)
         styleTransferModelExecutor.selectStyle(type, activity!!)
+
+        /*mainScope.async(inferenceThread) {
+            styleTransferModelExecutor.close()
+            styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, true)
+
+            styleTransferModelExecutor.selectStyle(type, activity!!)
+        }*/
     }
 }

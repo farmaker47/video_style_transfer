@@ -50,11 +50,11 @@ class StyleTransferModelExecutor(
         if (useGPU) {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_FLOAT16_MODEL, true)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_FLOAT16_MODEL, true)
-            Log.i("GPU_TRUE", "TRUE")
+            Log.e("GPU_TRUE", "TRUE")
         } else {
-            interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT8_MODEL, true)
-            interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, true)
-            Log.i("GPU_FALSE", "FALSE")
+            interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT8_MODEL, false)
+            interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, false)
+            Log.e("GPU_FALSE", "FALSE")
         }
 
 
