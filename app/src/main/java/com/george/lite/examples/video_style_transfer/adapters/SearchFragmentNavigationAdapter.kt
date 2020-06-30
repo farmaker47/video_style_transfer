@@ -1,18 +1,15 @@
-package com.george.lite.examples.video_style_transfer
+package com.george.lite.examples.video_style_transfer.adapters
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.george.lite.examples.video_style_transfer.databinding.SearchFragmentAdapterBinding
-import kotlinx.android.synthetic.main.search_fragment_adapter.view.*
 import java.util.*
 
 class SearchFragmentNavigationAdapter(
@@ -35,7 +32,10 @@ class SearchFragmentNavigationAdapter(
         i: Int
     ): NavigationAdapterViewHolder {
 
-        return Companion.from(this, parent)
+        return from(
+            this,
+            parent
+        )
     }
 
     override fun onBindViewHolder(

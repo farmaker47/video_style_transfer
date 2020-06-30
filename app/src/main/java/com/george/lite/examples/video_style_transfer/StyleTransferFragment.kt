@@ -53,6 +53,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.george.lite.examples.video_style_transfer.adapters.SearchFragmentNavigationAdapter
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
 import com.george.lite.examples.video_style_transfer.lib.*
 import kotlinx.coroutines.MainScope
@@ -61,6 +62,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
+import org.koin.android.ext.android.get
+import org.koin.android.ext.android.getKoin
 import java.util.concurrent.Executors
 import org.koin.android.viewmodel.ext.android.viewModel
 
@@ -74,6 +77,7 @@ class StyleTransferFragment :
     private val mainScope = MainScope()
     private lateinit var styleTransferModelExecutor: StyleTransferModelExecutor
     private var useGPU = false
+
     //private lateinit var imageViewStyled: ImageView
     private var doneInference = true
 
@@ -215,12 +219,19 @@ class StyleTransferFragment :
         binding.recyclerViewStyles.layoutManager =
             LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         mSearchFragmentNavigationAdapter =
-            SearchFragmentNavigationAdapter(activity!!, viewModel.currentList, this)
+            SearchFragmentNavigationAdapter(
+                activity!!,
+                viewModel.currentList,
+                this
+            )
         binding.recyclerViewStyles.adapter = mSearchFragmentNavigationAdapter
 
         mainScope.async(inferenceThread) {
-            styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
-            //styleTransferModelExecutor.selectStyle("zkate.jpg", activity!!)
+            getKoin().setProperty("koinUseGpu", false)
+            styleTransferModelExecutor = get()
+            //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+            styleTransferModelExecutor.selectStyle("mona.JPG", activity!!)
+            getKoin().setProperty("koinStyle", "mona.JPG")
             Log.d(TAG, "Executor created")
         }
 
@@ -257,9 +268,16 @@ class StyleTransferFragment :
             // Reinitialize TF Lite models with new GPU setting
             mainScope.async(inferenceThread) {
                 styleTransferModelExecutor.close()
-                styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+                getKoin().setProperty("koinUseGpu", true)
 
-                styleTransferModelExecutor.selectStyle("mona.JPG", activity!!)
+                // Because we used factory at koin module here we get a new instance of object
+                styleTransferModelExecutor = get()
+
+                //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+                styleTransferModelExecutor.selectStyle(
+                    getKoin().getProperty("koinStyle")!!,
+                    activity!!
+                )
                 binding.progressBar.visibility = View.INVISIBLE
             }
         }
@@ -279,7 +297,7 @@ class StyleTransferFragment :
         super.onResume()
         startBackgroundThread()
 
-        styleTransferModelExecutor.selectStyle("style1.jpg", activity!!)
+        styleTransferModelExecutor.selectStyle(getKoin().getProperty("koinStyle")!!, activity!!)
     }
 
     override fun onStart() {
@@ -704,6 +722,7 @@ class StyleTransferFragment :
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
         Log.i("String", type)
         styleTransferModelExecutor.selectStyle(type, activity!!)
+        getKoin().setProperty("koinStyle", type)
 
         /*mainScope.async(inferenceThread) {
             styleTransferModelExecutor.close()
