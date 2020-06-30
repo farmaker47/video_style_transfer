@@ -85,12 +85,23 @@ class StyleTransferModelExecutor(
         outputsForPredict = HashMap()
         //val styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
         outputsForPredict[0] = styleBottleneck
+        /*for(i in 0..styleBottleneck[0][0][0].size){
+            Log.e("Style_ouputs_first", styleBottleneck[0][0][0][i].toString())
+        }*/
         preProcessTime = SystemClock.uptimeMillis() - preProcessTime
 
         stylePredictTime = SystemClock.uptimeMillis()
         // The results of this inference could be reused given the style does not change
         // That would be a good practice in case this was applied to a video stream.
         interpreterPredict.runForMultipleInputsOutputs(inputsForPredict, outputsForPredict)
+
+        for (i in 0 until styleBottleneck[0][0][0].size) {
+            //Log.e("Style_ouputs_later", styleBottleneck[0][0][0][i].toString())
+            Log.e("Style_number", styleBottleneck[0][0][0].size.toString())
+
+            styleBottleneck[0][0][0][i] = styleBottleneck[0][0][0][i] / 3.0F
+        }
+
         stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
         Log.i("PREDICT", "Style Predict Time to run: $stylePredictTime")
 
@@ -207,7 +218,7 @@ class StyleTransferModelExecutor(
             tfliteOptions.addDelegate(gpuDelegate)
 
             //val delegate =
-                //GpuDelegate(GpuDelegate.Options().setQuantizedModelsAllowed(true))
+            //GpuDelegate(GpuDelegate.Options().setQuantizedModelsAllowed(true))
 
         }
 
