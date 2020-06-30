@@ -52,7 +52,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
 import com.george.lite.examples.video_style_transfer.lib.*
@@ -63,34 +62,19 @@ import kotlin.math.abs
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import java.util.concurrent.Executors
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class StyleTransferFragment :
     Fragment(),
     ActivityCompat.OnRequestPermissionsResultCallback,
     SearchFragmentNavigationAdapter.SearchClickItemListener {
 
-    /** List of body joints that should be connected.    */
-    /*private val bodyJoints = listOf(
-        Pair(BodyPart.LEFT_WRIST, BodyPart.LEFT_ELBOW),
-        Pair(BodyPart.LEFT_ELBOW, BodyPart.LEFT_SHOULDER),
-        Pair(BodyPart.LEFT_SHOULDER, BodyPart.RIGHT_SHOULDER),
-        Pair(BodyPart.RIGHT_SHOULDER, BodyPart.RIGHT_ELBOW),
-        Pair(BodyPart.RIGHT_ELBOW, BodyPart.RIGHT_WRIST),
-        Pair(BodyPart.LEFT_SHOULDER, BodyPart.LEFT_HIP),
-        Pair(BodyPart.LEFT_HIP, BodyPart.RIGHT_HIP),
-        Pair(BodyPart.RIGHT_HIP, BodyPart.RIGHT_SHOULDER),
-        Pair(BodyPart.LEFT_HIP, BodyPart.LEFT_KNEE),
-        Pair(BodyPart.LEFT_KNEE, BodyPart.LEFT_ANKLE),
-        Pair(BodyPart.RIGHT_HIP, BodyPart.RIGHT_KNEE),
-        Pair(BodyPart.RIGHT_KNEE, BodyPart.RIGHT_ANKLE)
-    )*/
-
-    private lateinit var viewModel: MLExecutionViewModel
+    private val viewModel: MLExecutionViewModel by viewModel()
     private val inferenceThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val mainScope = MainScope()
     private lateinit var styleTransferModelExecutor: StyleTransferModelExecutor
     private var useGPU = false
-    private lateinit var imageViewStyled: ImageView
+    //private lateinit var imageViewStyled: ImageView
     private var doneInference = true
 
     private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
@@ -225,9 +209,6 @@ class StyleTransferFragment :
 
         binding = TfePnActivityStyleTransferBinding.inflate(inflater)
         binding.lifecycleOwner = this
-
-        viewModel = ViewModelProviders.of(this)
-            .get(MLExecutionViewModel::class.java)
 
         // RecyclerView setup
         binding.recyclerViewStyles.setHasFixedSize(true)

@@ -11,7 +11,7 @@ class VideoStyleTransferApplication : Application() {
         startKoin {
             //androidContext(applicationContext)
             androidContext(this@VideoStyleTransferApplication)
-            //modules(cameraFragmentViewModelModule)
+            modules(machineLearningExecutionModule)
         }
     }
 }
