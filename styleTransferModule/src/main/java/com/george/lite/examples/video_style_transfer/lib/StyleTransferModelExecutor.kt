@@ -50,11 +50,11 @@ class StyleTransferModelExecutor(
         if (useGPU) {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_FLOAT16_MODEL, true)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_FLOAT16_MODEL, true)
-            Log.e("GPU_TRUE", "TRUE")
+            Log.i("GPU_TRUE", "TRUE")
         } else {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT8_MODEL, false)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, false)
-            Log.e("GPU_FALSE", "FALSE")
+            Log.i("GPU_FALSE", "FALSE")
         }
 
 
@@ -154,7 +154,7 @@ class StyleTransferModelExecutor(
             Log.i(TAG, "Post process time: $postProcessTime")
 
             fullExecutionTime = SystemClock.uptimeMillis() - fullExecutionTime
-            Log.e("STYLE_SOLOUPIS", "Time to run everything: $fullExecutionTime")
+            Log.i("STYLE_SOLOUPIS", "Time to run everything: $fullExecutionTime")
 
             return ModelExecutionResult(
                 styledImage,

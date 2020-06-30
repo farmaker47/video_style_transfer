@@ -83,15 +83,6 @@ class StyleTransferFragment :
 
     private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
 
-    /** Threshold for confidence score. */
-    private val minConfidence = 0.5
-
-    /** Radius of circle used to draw keypoints.  */
-    private val circleRadius = 8.0f
-
-    /** Paint class holds the style and color information to draw geometries,text and bitmaps. */
-    private var paint = Paint()
-
     /** A shape for extracting frame data.   */
     private val PREVIEW_WIDTH = 640
     private val PREVIEW_HEIGHT = 480
@@ -116,9 +107,6 @@ class StyleTransferFragment :
 
     /** The [android.util.Size.getHeight] of camera preview.  */
     private var previewHeight = 0
-
-    /** A counter to keep count of total frames.  */
-    private var frameCounter = 0
 
     /** An IntArray to save image data in ARGB8888 format  */
     private lateinit var rgbBytes: IntArray
@@ -226,6 +214,7 @@ class StyleTransferFragment :
             )
         binding.recyclerViewStyles.adapter = mSearchFragmentNavigationAdapter
 
+        // First use of style executor class
         mainScope.async(inferenceThread) {
             getKoin().setProperty("koinUseGpu", false)
             styleTransferModelExecutor = get()
@@ -364,7 +353,7 @@ class StyleTransferFragment :
             for (cameraId in manager.cameraIdList) {
                 val characteristics = manager.getCameraCharacteristics(cameraId)
 
-                // We don't use a front facing camera in this sample.
+                // We don't use a back facing camera in this sample.
                 val cameraDirection = characteristics.get(CameraCharacteristics.LENS_FACING)
                 if (cameraDirection != null &&
                     cameraDirection == CameraCharacteristics.LENS_FACING_BACK
@@ -426,7 +415,7 @@ class StyleTransferFragment :
         val manager = activity!!.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             // Wait for camera to open - 2.5 seconds is sufficient
-            if (!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
+            if (!cameraOpenCloseLock.tryAcquire(1000, TimeUnit.MILLISECONDS)) {
                 throw RuntimeException("Time out waiting to lock camera opening.")
             }
             manager.openCamera(cameraId!!, stateCallback, backgroundHandler)
@@ -575,13 +564,6 @@ class StyleTransferFragment :
             }
         }
         return croppedBitmap
-    }
-
-    /** Set the paint color and size.    */
-    private fun setPaint() {
-        paint.color = Color.GREEN
-        paint.textSize = 80.0f
-        paint.strokeWidth = 8.0f
     }
 
     /** Process image using StyleTransfer library.   */
