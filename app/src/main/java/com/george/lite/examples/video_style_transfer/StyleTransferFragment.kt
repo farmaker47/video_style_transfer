@@ -21,15 +21,11 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.*
-import android.hardware.camera2.CameraAccessException
-import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import android.hardware.camera2.CaptureRequest
-import android.hardware.camera2.CaptureResult
-import android.hardware.camera2.TotalCaptureResult
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageFormat
+import android.graphics.Matrix
+import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
 import android.media.ImageReader.OnImageAvailableListener
@@ -37,35 +33,32 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Process
-import androidx.core.app.ActivityCompat
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
-import android.view.LayoutInflater
-import android.view.Surface
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.george.lite.examples.video_style_transfer.adapters.SearchFragmentNavigationAdapter
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
-import com.george.lite.examples.video_style_transfer.lib.*
+import com.george.lite.examples.video_style_transfer.lib.MLExecutionViewModel
+import com.george.lite.examples.video_style_transfer.lib.StyleTransferModelExecutor
 import kotlinx.coroutines.MainScope
-import java.util.concurrent.Semaphore
-import java.util.concurrent.TimeUnit
-import kotlin.math.abs
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.getKoin
-import java.util.concurrent.Executors
 import org.koin.android.viewmodel.ext.android.viewModel
+import java.util.concurrent.Executors
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 class StyleTransferFragment :
     Fragment(),
@@ -82,6 +75,8 @@ class StyleTransferFragment :
     private var doneInference = true
 
     private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
+
+    private var styleNumber: Int = 1
 
     /** A shape for extracting frame data.   */
     private val PREVIEW_WIDTH = 640
@@ -219,7 +214,7 @@ class StyleTransferFragment :
             getKoin().setProperty("koinUseGpu", false)
             styleTransferModelExecutor = get()
             //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
-            styleTransferModelExecutor.selectStyle("mona.JPG", activity!!)
+            styleTransferModelExecutor.selectStyle("mona.JPG", styleNumber, activity!!)
             getKoin().setProperty("koinStyle", "mona.JPG")
             Log.d(TAG, "Executor created")
         }
@@ -264,12 +259,39 @@ class StyleTransferFragment :
 
                 //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
                 styleTransferModelExecutor.selectStyle(
-                    getKoin().getProperty("koinStyle")!!,
+                    getKoin().getProperty("koinStyle")!!, styleNumber,
                     activity!!
                 )
                 binding.progressBar.visibility = View.INVISIBLE
             }
         }
+
+        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean
+            ) {
+                styleNumber = progress
+                Log.e("SeekBar", styleNumber.toString())
+
+                styleTransferModelExecutor.selectStyle(
+                    getKoin().getProperty("koinStyle")!!, styleNumber,
+                    activity!!
+                )
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                // TODO Auto-generated method stub
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                Toast.makeText(
+                    activity!!, "Style inheritance is :$styleNumber",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
 
         return binding.root
     }
@@ -286,7 +308,11 @@ class StyleTransferFragment :
         super.onResume()
         startBackgroundThread()
 
-        styleTransferModelExecutor.selectStyle(getKoin().getProperty("koinStyle")!!, activity!!)
+        styleTransferModelExecutor.selectStyle(
+            getKoin().getProperty("koinStyle")!!,
+            styleNumber,
+            activity!!
+        )
     }
 
     override fun onStart() {
@@ -703,7 +729,7 @@ class StyleTransferFragment :
 
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
         Log.i("String", type)
-        styleTransferModelExecutor.selectStyle(type, activity!!)
+        styleTransferModelExecutor.selectStyle(type, styleNumber, activity!!)
         getKoin().setProperty("koinStyle", type)
 
         /*mainScope.async(inferenceThread) {

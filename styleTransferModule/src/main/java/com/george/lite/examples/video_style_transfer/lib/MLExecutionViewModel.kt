@@ -27,6 +27,8 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
     private val viewModelJob = Job()
     private val viewModelScope = CoroutineScope(viewModelJob)
 
+    //private var styleInteger: Int = 0
+
     init {
         _inferenceDone.value = true
 

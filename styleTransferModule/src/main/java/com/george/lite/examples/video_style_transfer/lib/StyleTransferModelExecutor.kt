@@ -73,6 +73,7 @@ class StyleTransferModelExecutor(
 
     fun selectStyle(
         styleImageName: String,
+        styleInheritance: Int,
         context: Context
     ) {
 
@@ -99,7 +100,7 @@ class StyleTransferModelExecutor(
             //Log.e("Style_ouputs_later", styleBottleneck[0][0][0][i].toString())
             Log.e("Style_number", styleBottleneck[0][0][0].size.toString())
 
-            styleBottleneck[0][0][0][i] = styleBottleneck[0][0][0][i] / 3.0F
+            styleBottleneck[0][0][0][i] = styleBottleneck[0][0][0][i] * styleInheritance.toFloat()
         }
 
         stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
