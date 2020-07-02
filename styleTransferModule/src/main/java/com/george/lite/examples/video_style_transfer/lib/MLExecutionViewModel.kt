@@ -27,13 +27,10 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
     private val viewModelJob = Job()
     private val viewModelScope = CoroutineScope(viewModelJob)
 
-    //private var styleInteger: Int = 0
-
     init {
         _inferenceDone.value = true
 
         // Create list of styles
-        //val styles = ArrayList<String>()
         _currentList.addAll(application.assets.list("thumbnails")!!)
     }
 
@@ -52,10 +49,6 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
             _inferenceDone.postValue(true)
         }
 
-        // Initialize Interpreter
-        /*viewModelScope.launch {
-            initializeInterpreter(app)
-        }*/
     }
 
     override fun onCleared() {

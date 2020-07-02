@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.george.lite.examples.video_style_transfer
+package com.george.lite.examples.video_style_transfer.ui
 
 import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
+import com.george.lite.examples.video_style_transfer.R
+import com.george.lite.examples.video_style_transfer.REQUEST_CAMERA_PERMISSION
 
 /**
  * Shows OK/Cancel confirmation dialog about camera permission.

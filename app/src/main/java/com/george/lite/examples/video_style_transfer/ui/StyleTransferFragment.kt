@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.george.lite.examples.video_style_transfer
+package com.george.lite.examples.video_style_transfer.ui
 
 import android.Manifest
 import android.app.AlertDialog
@@ -45,6 +45,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.george.lite.examples.video_style_transfer.*
 import com.george.lite.examples.video_style_transfer.adapters.SearchFragmentNavigationAdapter
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
 import com.george.lite.examples.video_style_transfer.lib.MLExecutionViewModel
@@ -70,13 +71,10 @@ class StyleTransferFragment :
     private val mainScope = MainScope()
     private lateinit var styleTransferModelExecutor: StyleTransferModelExecutor
     private var useGPU = false
-
-    //private lateinit var imageViewStyled: ImageView
     private var doneInference = true
-
     private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
-
     private var styleNumber: Int = 1
+    private lateinit var binding: TfePnActivityStyleTransferBinding
 
     /** A shape for extracting frame data.   */
     private val PREVIEW_WIDTH = 640
@@ -186,8 +184,6 @@ class StyleTransferFragment :
         activity?.runOnUiThread { Toast.makeText(activity, text, Toast.LENGTH_SHORT).show() }
     }
 
-    private lateinit var binding: TfePnActivityStyleTransferBinding
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -211,30 +207,31 @@ class StyleTransferFragment :
 
         // First use of style executor class
         mainScope.async(inferenceThread) {
-            getKoin().setProperty("koinUseGpu", false)
+            getKoin().setProperty(getString(R.string.koinUseGpu), false)
             styleTransferModelExecutor = get()
             //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
             styleTransferModelExecutor.selectStyle("mona.JPG", styleNumber, activity!!)
-            getKoin().setProperty("koinStyle", "mona.JPG")
+            getKoin().setProperty(getString(R.string.koinStyle), "mona.JPG")
             Log.d(TAG, "Executor created")
         }
 
+        // Observe viewmodel object
         viewModel.styledBitmap.observe(
             activity!!,
             Observer { resultImage ->
                 if (resultImage != null) {
-                    //updateUIWithResults(resultImage)
                     /*Glide.with(activity!!)
                         .load(resultImage.styledImage)
                         .fitCenter()
                         .into(binding.imageViewStyled)*/
                     //binding.imageViewStyled.setImageBitmap(getBitmapFromAsset(activity!!,"style0.jpg"))
                     binding.imageViewStyled.setImageBitmap(resultImage.styledImage)
-
                 }
             }
         )
 
+        // Observe when inference is done so to use only images for inference at that free time
+        // otherwise queue of images that wait for inference gets toooo long
         viewModel.inferenceDone.observe(
             activity!!,
             Observer { inferenceIsDone ->
@@ -242,9 +239,12 @@ class StyleTransferFragment :
             }
         )
 
-        //binding.imageViewStyled.setImageBitmap(getBitmapFromAsset(activity!!,"style0.jpg"))
-
         // GPU switch
+        // GPUs are designed to have high throughput for massively parallelizable workloads.
+        // Thus, they are well-suited for deep neural nets, which consist of a huge number of operators,
+        // each working on some input tensor(s) that can be easily divided into smaller workloads and carried out in parallel,
+        // typically resulting in lower latency. In the best scenario,
+        // inference on the GPU may now run fast enough for previously not available real-time applications.
         binding.switchUseGpu.setOnCheckedChangeListener { _, isChecked ->
             useGPU = isChecked
             binding.progressBar.visibility = View.VISIBLE
@@ -252,20 +252,21 @@ class StyleTransferFragment :
             // Reinitialize TF Lite models with new GPU setting
             mainScope.async(inferenceThread) {
                 styleTransferModelExecutor.close()
-                getKoin().setProperty("koinUseGpu", true)
+                getKoin().setProperty(getString(R.string.koinUseGpu), true)
 
                 // Because we used factory at koin module here we get a new instance of object
                 styleTransferModelExecutor = get()
 
                 //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
                 styleTransferModelExecutor.selectStyle(
-                    getKoin().getProperty("koinStyle")!!, styleNumber,
+                    getKoin().getProperty(getString(R.string.koinStyle))!!, styleNumber,
                     activity!!
                 )
                 binding.progressBar.visibility = View.INVISIBLE
             }
         }
 
+        // Setting up Seekbar for style inheritance
         binding.seekBar.progress = 0;
         binding.seekBar.incrementProgressBy(1);
         binding.seekBar.max = 4;
@@ -277,10 +278,10 @@ class StyleTransferFragment :
                 fromUser: Boolean
             ) {
                 styleNumber = progress
-                Log.e("SeekBar", styleNumber.toString())
+                Log.i("SeekBar", styleNumber.toString())
 
                 styleTransferModelExecutor.selectStyle(
-                    getKoin().getProperty("koinStyle")!!, styleNumber,
+                    getKoin().getProperty(getString(R.string.koinStyle))!!, styleNumber,
                     activity!!
                 )
             }
@@ -313,7 +314,7 @@ class StyleTransferFragment :
         startBackgroundThread()
 
         styleTransferModelExecutor.selectStyle(
-            getKoin().getProperty("koinStyle")!!,
+            getKoin().getProperty(getString(R.string.koinStyle))!!,
             styleNumber,
             activity!!
         )
@@ -337,9 +338,10 @@ class StyleTransferFragment :
 
     private fun requestCameraPermission() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-            ConfirmationDialog().show(
+            ConfirmationDialog()
+                .show(
                 childFragmentManager,
-                FRAGMENT_DIALOG
+                    FRAGMENT_DIALOG
             )
         } else {
             requestPermissions(
@@ -732,15 +734,7 @@ class StyleTransferFragment :
     }
 
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
-        Log.i("String", type)
         styleTransferModelExecutor.selectStyle(type, styleNumber, activity!!)
-        getKoin().setProperty("koinStyle", type)
-
-        /*mainScope.async(inferenceThread) {
-            styleTransferModelExecutor.close()
-            styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, true)
-
-            styleTransferModelExecutor.selectStyle(type, activity!!)
-        }*/
+        getKoin().setProperty(getString(R.string.koinStyle), type)
     }
 }

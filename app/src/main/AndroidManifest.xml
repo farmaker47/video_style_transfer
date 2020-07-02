@@ -3,11 +3,8 @@
     package="com.george.lite.examples.video_style_transfer">
 
     <uses-permission android:name="android.permission.CAMERA" />
-
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
-
-    <uses-sdk />
 
     <application
         android:name=".VideoStyleTransferApplication"
@@ -19,7 +16,7 @@
         android:theme="@style/AppTheme.VideoStyleTransfer">
 
         <activity
-            android:name="com.george.lite.examples.video_style_transfer.CameraActivity"
+            android:name="com.george.lite.examples.video_style_transfer.ui.CameraActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

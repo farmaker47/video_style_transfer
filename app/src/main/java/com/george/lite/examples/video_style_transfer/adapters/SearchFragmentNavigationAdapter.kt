@@ -42,7 +42,6 @@ class SearchFragmentNavigationAdapter(
         holder: NavigationAdapterViewHolder,
         position: Int
     ) {
-        //setting the name at the textView
         holder.bind(position)
     }
 
@@ -68,7 +67,6 @@ class SearchFragmentNavigationAdapter(
 
         init {
             itemView.setOnClickListener{
-                //ViewCompat.setTransitionName(binding.imageFragmentAdapter, mContext.getString(R.string.transition_photo))
                 onClick(binding.imageFragmentAdapter)
             }
         }
@@ -83,16 +81,7 @@ class SearchFragmentNavigationAdapter(
                 .load(Uri.parse("file:///android_asset/thumbnails/$imagePath"))
                 .centerInside()
                 .into(binding.imageFragmentAdapter)
-            //binding.textViewFragmentAdapter.text = hitsList!![position]
-            //binding.imageFragmentAdapter.setImageResource(R.drawable.medicine)
         }
-    }
-
-    fun setHitsData(list: ArrayList<String>?) {
-        hitsList = list
-/*
-        notifyDataSetChanged();
-*/
     }
 
     companion object {

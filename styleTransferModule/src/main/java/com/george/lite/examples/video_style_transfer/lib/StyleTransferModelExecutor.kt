@@ -38,7 +38,7 @@ class StyleTransferModelExecutor(
     private var styleTransferTime = 0L
     private var postProcessTime = 0L
 
-    // Variables that required to run only once at the beggining
+    // Variables that required to run only once at the beginning
     private lateinit var inputsForPredict: Array<Any>
     private lateinit var outputsForPredict: HashMap<Int, Any>
     private var styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
@@ -53,8 +53,6 @@ class StyleTransferModelExecutor(
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, false)
             Log.i("GPU_FALSE", "FALSE")
         }
-
-
     }
 
     companion object {
@@ -83,20 +81,14 @@ class StyleTransferModelExecutor(
         outputsForPredict = HashMap()
         //val styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
         outputsForPredict[0] = styleBottleneck
-        /*for(i in 0..styleBottleneck[0][0][0].size){
-            Log.e("Style_ouputs_first", styleBottleneck[0][0][0][i].toString())
-        }*/
         preProcessTime = SystemClock.uptimeMillis() - preProcessTime
 
         stylePredictTime = SystemClock.uptimeMillis()
-        // The results of this inference could be reused given the style does not change
-        // That would be a good practice in case this was applied to a video stream.
         interpreterPredict.runForMultipleInputsOutputs(inputsForPredict, outputsForPredict)
 
+        // Apply style inheritance by changing values with seekbar integers
         for (i in 0 until styleBottleneck[0][0][0].size) {
-            //Log.e("Style_ouputs_later", styleBottleneck[0][0][0][i].toString())
-            Log.e("Style_number", styleBottleneck[0][0][0].size.toString())
-
+            Log.i("Style_number", styleBottleneck[0][0][0].size.toString())
             styleBottleneck[0][0][0][i] = styleBottleneck[0][0][0][i] / styleInheritance.toFloat()
         }
 
@@ -208,16 +200,12 @@ class StyleTransferModelExecutor(
         useGpu: Boolean
     ): Interpreter {
         val tfliteOptions = Interpreter.Options()
-        //tfliteOptions.setNumThreads(numberThreads)
-
-        //gpuDelegate = null
         if (useGpu) {
             gpuDelegate = GpuDelegate()
             tfliteOptions.addDelegate(gpuDelegate)
 
             //val delegate =
             //GpuDelegate(GpuDelegate.Options().setQuantizedModelsAllowed(true))
-
         }
 
         tfliteOptions.setNumThreads(numberThreads)

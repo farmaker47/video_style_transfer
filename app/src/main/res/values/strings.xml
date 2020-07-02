@@ -19,4 +19,6 @@
   <string name="tfe_pn_camera_error" translation_description="Error regarding camera support[CHAR_LIMIT=40]">This device doesn\'t support Camera2 API.</string>
     <string name="gpu">\tGPU</string>
   <string name="textViewText">Style your video</string>
+    <string name="koinUseGpu">koinUseGpu</string>
+  <string name="koinStyle">koinStyle</string>
 </resources>

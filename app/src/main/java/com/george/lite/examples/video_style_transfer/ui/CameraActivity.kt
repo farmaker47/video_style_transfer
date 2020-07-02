@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.george.lite.examples.video_style_transfer
+package com.george.lite.examples.video_style_transfer.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.george.lite.examples.video_style_transfer.R
 
 class CameraActivity : AppCompatActivity() {
 

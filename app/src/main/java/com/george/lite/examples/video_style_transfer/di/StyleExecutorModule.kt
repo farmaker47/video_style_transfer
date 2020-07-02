@@ -4,7 +4,6 @@ import com.george.lite.examples.video_style_transfer.lib.StyleTransferModelExecu
 import org.koin.dsl.module
 
 val styleExecutorModule = module {
-
     factory {
         StyleTransferModelExecutor(get(), getKoin().getProperty("koinUseGpu")!!)
     }
