@@ -266,7 +266,11 @@ class StyleTransferFragment :
             }
         }
 
+        binding.seekBar.progress = 0;
+        binding.seekBar.incrementProgressBy(1);
+        binding.seekBar.max = 4;
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
             override fun onProgressChanged(
                 seekBar: SeekBar?,
                 progress: Int,

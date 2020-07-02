@@ -11,8 +11,6 @@ import java.io.IOException
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 
-
-@SuppressWarnings("GoodTime")
 data class ModelExecutionResult(
     val styledImage: Bitmap,
     val preProcessTime: Long = 0L,
@@ -24,7 +22,6 @@ data class ModelExecutionResult(
     val errorMessage: String = ""
 )
 
-@SuppressWarnings("GoodTime")
 class StyleTransferModelExecutor(
     context: Context,
     private var useGPU: Boolean
@@ -100,7 +97,7 @@ class StyleTransferModelExecutor(
             //Log.e("Style_ouputs_later", styleBottleneck[0][0][0][i].toString())
             Log.e("Style_number", styleBottleneck[0][0][0].size.toString())
 
-            styleBottleneck[0][0][0][i] = styleBottleneck[0][0][0][i] * styleInheritance.toFloat()
+            styleBottleneck[0][0][0][i] = styleBottleneck[0][0][0][i] / styleInheritance.toFloat()
         }
 
         stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
