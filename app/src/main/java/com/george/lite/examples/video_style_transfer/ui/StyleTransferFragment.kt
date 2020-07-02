@@ -266,6 +266,7 @@ class StyleTransferFragment :
             }
         }
 
+
         // Setting up Seekbar for style inheritance
         binding.seekBar.progress = 0;
         binding.seekBar.incrementProgressBy(1);
