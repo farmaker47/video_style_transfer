@@ -184,6 +184,7 @@ abstract class ImageUtils {
             return inputImage
         }
 
+
         fun createEmptyBitmap(imageWidth: Int, imageHeigth: Int, color: Int = 0): Bitmap {
             val ret = Bitmap.createBitmap(imageWidth, imageHeigth, Bitmap.Config.RGB_565)
             if (color != 0) {
