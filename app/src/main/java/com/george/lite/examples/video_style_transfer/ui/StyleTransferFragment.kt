@@ -314,11 +314,11 @@ class StyleTransferFragment :
         super.onResume()
         startBackgroundThread()
 
-        styleTransferModelExecutor.selectStyle(
+        /*styleTransferModelExecutor.selectStyle(
             getKoin().getProperty(getString(R.string.koinStyle))!!,
             styleNumber,
             activity!!
-        )
+        )*/
     }
 
     override fun onStart() {
