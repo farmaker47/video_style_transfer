@@ -45,6 +45,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.george.lite.examples.video_style_transfer.*
 import com.george.lite.examples.video_style_transfer.adapters.SearchFragmentNavigationAdapter
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
@@ -58,7 +59,6 @@ import org.koin.android.ext.android.getKoin
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 class StyleTransferFragment :

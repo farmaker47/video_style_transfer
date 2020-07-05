@@ -1,6 +1,8 @@
 package com.george.lite.examples.video_style_transfer.adapters
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
@@ -77,12 +79,17 @@ class SearchFragmentNavigationAdapter(
 
             val imagePath = hitsList!![position]
 
-            Glide.with(mContext)
+            /*Glide.with(mContext)
                 .load(Uri.parse("file:///android_asset/thumbnails/$imagePath"))
                 .centerInside()
-                .into(binding.imageFragmentAdapter)
+                .into(binding.imageFragmentAdapter)*/
+
+            binding.imageFragmentAdapter.setImageBitmap(getBitmapFromAsset(mContext,"thumbnails/$imagePath"))
         }
     }
+
+    private fun getBitmapFromAsset(context: Context, path: String): Bitmap =
+        context.assets.open(path).use { BitmapFactory.decodeStream(it) }
 
     companion object {
         private fun from(
