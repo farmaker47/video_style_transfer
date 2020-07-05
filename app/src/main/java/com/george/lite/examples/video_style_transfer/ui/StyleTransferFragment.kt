@@ -313,12 +313,6 @@ class StyleTransferFragment :
     override fun onResume() {
         super.onResume()
         startBackgroundThread()
-
-        /*styleTransferModelExecutor.selectStyle(
-            getKoin().getProperty(getString(R.string.koinStyle))!!,
-            styleNumber,
-            activity!!
-        )*/
     }
 
     override fun onStart() {
@@ -341,9 +335,10 @@ class StyleTransferFragment :
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
             ConfirmationDialog()
                 .show(
-                childFragmentManager,
+                    childFragmentManager,
                     FRAGMENT_DIALOG
-            )
+                )
+
         } else {
             requestPermissions(
                 arrayOf(Manifest.permission.CAMERA),
@@ -359,6 +354,10 @@ class StyleTransferFragment :
     ) {
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (allPermissionsGranted(grantResults)) {
+
+                afterPermissionsGranted()
+
+            } else {
                 ErrorDialog.newInstance(
                     getString(R.string.tfe_pn_request_permission)
                 )
@@ -369,6 +368,26 @@ class StyleTransferFragment :
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    private fun afterPermissionsGranted() {
+        setUpCameraOutputs()
+        // Camera manager
+        val manager = activity!!.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        try {
+            if (ActivityCompat.checkSelfPermission(
+                    context!!,
+                    Manifest.permission.CAMERA
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            manager.openCamera(cameraId!!, stateCallback, backgroundHandler)
+        } catch (e: CameraAccessException) {
+            Log.e(TAG, e.toString())
+        } catch (e: InterruptedException) {
+            throw RuntimeException("Interrupted while trying to lock camera opening.", e)
         }
     }
 
@@ -438,25 +457,15 @@ class StyleTransferFragment :
      * Opens the camera specified by [StyleTransferFragment.cameraId].
      */
     private fun openCamera() {
-        val permissionCamera = getContext()!!.checkPermission(
+        val permissionCamera = context!!.checkPermission(
             Manifest.permission.CAMERA, Process.myPid(), Process.myUid()
         )
         if (permissionCamera != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission()
+        } else {
+            afterPermissionsGranted()
         }
-        setUpCameraOutputs()
-        val manager = activity!!.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        try {
-            // Wait for camera to open - 2.5 seconds is sufficient
-            if (!cameraOpenCloseLock.tryAcquire(1000, TimeUnit.MILLISECONDS)) {
-                throw RuntimeException("Time out waiting to lock camera opening.")
-            }
-            manager.openCamera(cameraId!!, stateCallback, backgroundHandler)
-        } catch (e: CameraAccessException) {
-            Log.e(TAG, e.toString())
-        } catch (e: InterruptedException) {
-            throw RuntimeException("Interrupted while trying to lock camera opening.", e)
-        }
+
     }
 
     /**
