@@ -252,7 +252,7 @@ class StyleTransferFragment :
             // Reinitialize TF Lite models with new GPU setting
             mainScope.async(inferenceThread) {
                 styleTransferModelExecutor.close()
-                getKoin().setProperty(getString(R.string.koinUseGpu), true)
+                getKoin().setProperty(getString(R.string.koinUseGpu), useGPU)
 
                 // Because we used factory at koin module here we get a new instance of object
                 styleTransferModelExecutor = get()
@@ -287,9 +287,7 @@ class StyleTransferFragment :
                 )
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                // TODO Auto-generated method stub
-            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 Toast.makeText(

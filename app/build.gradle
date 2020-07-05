@@ -23,8 +23,10 @@ android {
     aaptOptions {
         noCompress "tflite"
     }
-    dataBinding {
-        enabled = true
+    buildFeatures{
+        dataBinding = true
+        // for view binding :
+        // viewBinding = true
     }
     androidExtensions {
         experimental = true

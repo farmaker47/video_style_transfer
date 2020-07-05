@@ -101,18 +101,3 @@ class SearchFragmentNavigationAdapter(
     }
 
 }
-
-class HitListDiffCallBack : DiffUtil.ItemCallback<ArrayList<String>?>() {
-
-    override fun areContentsTheSame(
-        oldItem: ArrayList<String>,
-        newItem: ArrayList<String>
-    ): Boolean {
-        return oldItem.equals(newItem)
-    }
-
-    override fun areItemsTheSame(oldItem: ArrayList<String>, newItem: ArrayList<String>): Boolean {
-        TODO("Not yet implemented")
-    }
-
-}

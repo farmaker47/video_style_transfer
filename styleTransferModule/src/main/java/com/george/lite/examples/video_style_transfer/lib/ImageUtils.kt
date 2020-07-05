@@ -29,7 +29,6 @@ import java.nio.ByteOrder
 
 /**
  * Collection of image reading and manipulation utilities in the form of static functions.
- * TODO: this class should be moved to the common code in the future
  */
 abstract class ImageUtils {
     companion object {
@@ -37,7 +36,6 @@ abstract class ImageUtils {
         /**
          * Helper function used to convert an EXIF orientation enum into a transformation matrix
          * that can be applied to a bitmap.
-         *
          * @param orientation - One of the constants from [ExifInterface]
          */
         private fun decodeExifOrientation(orientation: Int): Matrix {
