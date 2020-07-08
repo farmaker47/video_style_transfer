@@ -54,6 +54,7 @@ import com.george.lite.examples.video_style_transfer.lib.StyleTransferModelExecu
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
+import org.koin.android.ext.android.bind
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.getKoin
 import org.koin.android.viewmodel.ext.android.viewModel
@@ -70,8 +71,9 @@ class StyleTransferFragment :
     private val inferenceThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val mainScope = MainScope()
     private lateinit var styleTransferModelExecutor: StyleTransferModelExecutor
-    private var useGPU = false
+    private var useGPU = Boolean
     private var doneInference = true
+    private var isExecutorInitialized = false
     private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
     private var styleNumber: Int = 1
     private lateinit var binding: TfePnActivityStyleTransferBinding
@@ -207,12 +209,80 @@ class StyleTransferFragment :
 
         // First use of style executor class
         mainScope.async(inferenceThread) {
-            getKoin().setProperty(getString(R.string.koinUseGpu), false)
+            Log.i("IS_CHECKED", binding.switchUseGpu.isChecked.toString())
+            getKoin().setProperty(getString(R.string.koinUseGpu), viewModel.cpuGpu != "false")
             styleTransferModelExecutor = get()
             //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
-            styleTransferModelExecutor.selectStyle("mona.JPG", styleNumber, activity!!)
-            getKoin().setProperty(getString(R.string.koinStyle), "mona.JPG")
+            styleTransferModelExecutor.selectStyle(viewModel.stylename, styleNumber, activity!!)
+            getKoin().setProperty(getString(R.string.koinStyle), viewModel.stylename)
             Log.d(TAG, "Executor created")
+            isExecutorInitialized = true
+
+            // and then set switch and search bar
+            // this is done inside for rotation problem initialization
+
+            // GPU switch
+            // GPUs are designed to have high throughput for massively parallelizable workloads.
+            // Thus, they are well-suited for deep neural nets, which consist of a huge number of operators,
+            // each working on some input tensor(s) that can be easily divided into smaller workloads and carried out in parallel,
+            // typically resulting in lower latency. In the best scenario,
+            // inference on the GPU may now run fast enough for previously not available real-time applications.
+            binding.switchUseGpu.setOnCheckedChangeListener { _, isChecked ->
+                //useGPU = isChecked
+                Log.i("SWITCH_CHECKED", binding.switchUseGpu.isChecked.toString())
+                viewModel.setTypeCpuGpu(binding.switchUseGpu.isChecked.toString())
+                binding.progressBar.visibility = View.VISIBLE
+
+                // Reinitialize TF Lite models with new GPU setting
+                mainScope.async(inferenceThread) {
+                    styleTransferModelExecutor.close()
+                    isExecutorInitialized = false
+                    getKoin().setProperty(getString(R.string.koinUseGpu), isChecked)
+
+                    // Because we used factory at koin module here we get a new instance of object
+                    styleTransferModelExecutor = get()
+
+                    //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+                    styleTransferModelExecutor.selectStyle(
+                        getKoin().getProperty(getString(R.string.koinStyle))!!, styleNumber,
+                        activity!!
+                    )
+                    binding.progressBar.visibility = View.INVISIBLE
+                    isExecutorInitialized = true
+                }
+            }
+
+
+            // Setting up Seekbar for style inheritance
+            binding.seekBar.progress = 0;
+            binding.seekBar.incrementProgressBy(1);
+            binding.seekBar.max = 4;
+            binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    styleNumber = progress
+                    Log.i("SeekBar", styleNumber.toString())
+
+                    styleTransferModelExecutor.selectStyle(
+                        getKoin().getProperty(getString(R.string.koinStyle))!!, styleNumber,
+                        activity!!
+                    )
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    Toast.makeText(
+                        activity!!, "Style inheritance is :$styleNumber",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
+
         }
 
         // Observe viewmodel object
@@ -238,64 +308,6 @@ class StyleTransferFragment :
                 doneInference = inferenceIsDone
             }
         )
-
-        // GPU switch
-        // GPUs are designed to have high throughput for massively parallelizable workloads.
-        // Thus, they are well-suited for deep neural nets, which consist of a huge number of operators,
-        // each working on some input tensor(s) that can be easily divided into smaller workloads and carried out in parallel,
-        // typically resulting in lower latency. In the best scenario,
-        // inference on the GPU may now run fast enough for previously not available real-time applications.
-        binding.switchUseGpu.setOnCheckedChangeListener { _, isChecked ->
-            useGPU = isChecked
-            binding.progressBar.visibility = View.VISIBLE
-
-            // Reinitialize TF Lite models with new GPU setting
-            mainScope.async(inferenceThread) {
-                styleTransferModelExecutor.close()
-                getKoin().setProperty(getString(R.string.koinUseGpu), useGPU)
-
-                // Because we used factory at koin module here we get a new instance of object
-                styleTransferModelExecutor = get()
-
-                //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
-                styleTransferModelExecutor.selectStyle(
-                    getKoin().getProperty(getString(R.string.koinStyle))!!, styleNumber,
-                    activity!!
-                )
-                binding.progressBar.visibility = View.INVISIBLE
-            }
-        }
-
-
-        // Setting up Seekbar for style inheritance
-        binding.seekBar.progress = 0;
-        binding.seekBar.incrementProgressBy(1);
-        binding.seekBar.max = 4;
-        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-
-            override fun onProgressChanged(
-                seekBar: SeekBar?,
-                progress: Int,
-                fromUser: Boolean
-            ) {
-                styleNumber = progress
-                Log.i("SeekBar", styleNumber.toString())
-
-                styleTransferModelExecutor.selectStyle(
-                    getKoin().getProperty(getString(R.string.koinStyle))!!, styleNumber,
-                    activity!!
-                )
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                Toast.makeText(
-                    activity!!, "Style inheritance is :$styleNumber",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        })
 
         return binding.root
     }
@@ -326,7 +338,9 @@ class StyleTransferFragment :
 
     override fun onDestroy() {
         super.onDestroy()
-        styleTransferModelExecutor.close()
+        if(isExecutorInitialized){
+            styleTransferModelExecutor.close()
+        }
     }
 
     private fun requestCameraPermission() {
@@ -618,7 +632,7 @@ class StyleTransferFragment :
             MODEL_HEIGHT, true
         )
 
-        if (doneInference) {
+        if (doneInference && isExecutorInitialized) {
             viewModel.onApplyStyle(
                 activity!!, scaledBitmap, "zkate.jpg", styleTransferModelExecutor,
                 inferenceThread
@@ -744,5 +758,6 @@ class StyleTransferFragment :
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
         styleTransferModelExecutor.selectStyle(type, styleNumber, activity!!)
         getKoin().setProperty(getString(R.string.koinStyle), type)
+        viewModel.setStyleName(type)
     }
 }

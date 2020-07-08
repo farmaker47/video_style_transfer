@@ -23,15 +23,26 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
     val currentList: ArrayList<String>
         get() = _currentList
 
+    var stylename = String()
+    var cpuGpu = String()
 
     private val viewModelJob = Job()
     private val viewModelScope = CoroutineScope(viewModelJob)
 
     init {
         _inferenceDone.value = true
-
+        stylename = "mona.JPG"
+        cpuGpu = "false"
         // Create list of styles
         _currentList.addAll(application.assets.list("thumbnails")!!)
+    }
+
+    fun setStyleName(string: String) {
+        stylename = string
+    }
+
+    fun setTypeCpuGpu(string:String) {
+        cpuGpu = string
     }
 
     fun onApplyStyle(
