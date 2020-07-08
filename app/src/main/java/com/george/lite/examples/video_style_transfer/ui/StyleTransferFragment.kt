@@ -207,9 +207,11 @@ class StyleTransferFragment :
             )
         binding.recyclerViewStyles.adapter = mSearchFragmentNavigationAdapter
 
+        // Bind xml viewmodel
+        binding.viewmodelXml = viewModel
+
         // First use of style executor class
         mainScope.async(inferenceThread) {
-            Log.i("IS_CHECKED", binding.switchUseGpu.isChecked.toString())
             getKoin().setProperty(getString(R.string.koinUseGpu), viewModel.cpuGpu != "false")
             styleTransferModelExecutor = get()
             //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
@@ -229,7 +231,7 @@ class StyleTransferFragment :
             // inference on the GPU may now run fast enough for previously not available real-time applications.
             binding.switchUseGpu.setOnCheckedChangeListener { _, isChecked ->
                 //useGPU = isChecked
-                Log.i("SWITCH_CHECKED", binding.switchUseGpu.isChecked.toString())
+                //Log.i("SWITCH_CHECKED", binding.switchUseGpu.isChecked.toString())
                 viewModel.setTypeCpuGpu(binding.switchUseGpu.isChecked.toString())
                 binding.progressBar.visibility = View.VISIBLE
 

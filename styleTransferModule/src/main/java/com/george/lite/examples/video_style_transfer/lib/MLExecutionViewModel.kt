@@ -3,6 +3,7 @@ package com.george.lite.examples.video_style_transfer.lib
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -23,6 +24,12 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
     val currentList: ArrayList<String>
         get() = _currentList
 
+    private val _totalTimeInference = MutableLiveData<Int>()
+
+    // The external LiveData for the SelectedNews
+    val totalTimeInference: LiveData<Int>
+        get() = _totalTimeInference
+
     var stylename = String()
     var cpuGpu = String()
 
@@ -41,7 +48,7 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
         stylename = string
     }
 
-    fun setTypeCpuGpu(string:String) {
+    fun setTypeCpuGpu(string: String) {
         cpuGpu = string
     }
 
@@ -56,6 +63,7 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
             _inferenceDone.postValue(false)
             val result =
                 styleTransferModelExecutor.execute(contentBitmap, styleFilePath, context)
+            _totalTimeInference.postValue(result.totalExecutionTime.toInt())
             _styledBitmap.postValue(result)
             _inferenceDone.postValue(true)
         }
