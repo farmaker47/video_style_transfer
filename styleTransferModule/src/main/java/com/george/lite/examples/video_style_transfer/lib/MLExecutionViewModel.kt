@@ -32,6 +32,7 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
 
     var stylename = String()
     var cpuGpu = String()
+    var seekBarProgress: Float = 0F
 
     private val viewModelJob = Job()
     private val viewModelScope = CoroutineScope(viewModelJob)
@@ -40,8 +41,13 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
         _inferenceDone.value = true
         stylename = "mona.JPG"
         cpuGpu = "false"
+        // seekBarProgress = 0F
         // Create list of styles
         _currentList.addAll(application.assets.list("thumbnails")!!)
+    }
+
+    fun setTheSeekBarProgress(progress: Float) {
+        seekBarProgress = progress
     }
 
     fun setStyleName(string: String) {

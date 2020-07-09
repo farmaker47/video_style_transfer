@@ -251,7 +251,7 @@ class StyleTransferFragment :
                     //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
                     styleTransferModelExecutor.selectStyle(
                         getKoin().getProperty(getString(R.string.koinStyle))!!,
-                        styleNumber,
+                        viewModel.seekBarProgress * 0.2F,
                         scaledBitmap,
                         activity!!
                     )
@@ -259,6 +259,14 @@ class StyleTransferFragment :
                     isExecutorInitialized = true
                 }
             }
+
+            // After rotation we select style and seekbar progress
+            styleTransferModelExecutor.selectStyle(
+                getKoin().getProperty(getString(R.string.koinStyle))!!,
+                viewModel.seekBarProgress * 0.2F,
+                scaledBitmap,
+                activity!!
+            )
 
 
         }
@@ -306,7 +314,9 @@ class StyleTransferFragment :
 
     private fun setUpSeekBar() {
         // Setting up Seekbar for style inheritance
-        binding.seekBar.progress = 0;
+        binding.seekBar.progress = viewModel.seekBarProgress.toInt();
+        Log.e("SeekBarProgress", binding.seekBar.progress.toString())
+
         binding.seekBar.incrementProgressBy(0);
         binding.seekBar.max = 5;
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -317,7 +327,7 @@ class StyleTransferFragment :
                 fromUser: Boolean
             ) {
                 styleNumber = .2f * progress
-                Log.i("SeekBar", styleNumber.toString())
+                Log.e("SeekBar", styleNumber.toString())
 
                 styleTransferModelExecutor.selectStyle(
                     getKoin().getProperty(getString(R.string.koinStyle))!!,
@@ -325,6 +335,8 @@ class StyleTransferFragment :
                     scaledBitmap,
                     activity!!
                 )
+
+                viewModel.setTheSeekBarProgress(styleNumber / 0.2F)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -332,7 +344,8 @@ class StyleTransferFragment :
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 Toast.makeText(
                     activity!!,
-                    "Style inheritance is: " + ((1f - styleNumber) * 100).roundToInt().toString() + "%",
+                    "Style inheritance is: " + ((1f - styleNumber) * 100).roundToInt()
+                        .toString() + "%",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -770,7 +783,7 @@ class StyleTransferFragment :
     }
 
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
-        styleTransferModelExecutor.selectStyle(type, styleNumber, scaledBitmap, activity!!)
+        styleTransferModelExecutor.selectStyle(type, viewModel.seekBarProgress * 0.2F, scaledBitmap, activity!!)
         getKoin().setProperty(getString(R.string.koinStyle), type)
         viewModel.setStyleName(type)
     }
