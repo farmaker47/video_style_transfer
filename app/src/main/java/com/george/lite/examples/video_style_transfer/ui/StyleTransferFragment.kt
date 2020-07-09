@@ -70,7 +70,6 @@ class StyleTransferFragment :
     private val inferenceThread = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val mainScope = MainScope()
     private lateinit var styleTransferModelExecutor: StyleTransferModelExecutor
-    private var useGPU = Boolean
     private var doneInference = true
     private var isExecutorInitialized = false
     private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
@@ -224,7 +223,7 @@ class StyleTransferFragment :
             Log.d(TAG, "Executor created")
             isExecutorInitialized = true
 
-            // and then set switch and search bar
+            // and then set switch
             // this is done inside for rotation problem initialization
 
             // GPU switch
@@ -267,7 +266,6 @@ class StyleTransferFragment :
                 scaledBitmap,
                 activity!!
             )
-
 
         }
 
@@ -315,7 +313,7 @@ class StyleTransferFragment :
     private fun setUpSeekBar() {
         // Setting up Seekbar for style inheritance
         binding.seekBar.progress = viewModel.seekBarProgress.toInt();
-        Log.e("SeekBarProgress", binding.seekBar.progress.toString())
+        Log.i("SeekBarProgress", binding.seekBar.progress.toString())
 
         binding.seekBar.incrementProgressBy(0);
         binding.seekBar.max = 5;
@@ -327,7 +325,7 @@ class StyleTransferFragment :
                 fromUser: Boolean
             ) {
                 styleNumber = .2f * progress
-                Log.e("SeekBar", styleNumber.toString())
+                Log.i("SeekBar", styleNumber.toString())
 
                 styleTransferModelExecutor.selectStyle(
                     getKoin().getProperty(getString(R.string.koinStyle))!!,

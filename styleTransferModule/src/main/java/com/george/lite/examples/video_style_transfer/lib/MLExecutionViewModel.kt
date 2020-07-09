@@ -41,7 +41,6 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
         _inferenceDone.value = true
         stylename = "mona.JPG"
         cpuGpu = "false"
-        // seekBarProgress = 0F
         // Create list of styles
         _currentList.addAll(application.assets.list("thumbnails")!!)
     }

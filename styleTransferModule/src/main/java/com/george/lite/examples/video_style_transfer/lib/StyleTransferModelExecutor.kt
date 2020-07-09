@@ -96,12 +96,6 @@ class StyleTransferModelExecutor(
             outputsForPredictStyle
         )
 
-        // Apply style inheritance by changing values with seekbar integers
-        /*for (i in 0 until styleBottleneckBlended[0][0][0].size) {
-            Log.i("Style_number", styleBottleneckBlended[0][0][0].size.toString())
-            styleBottleneckBlended[0][0][0][i] = styleBottleneckBlended[0][0][0][i] / styleInheritance.toFloat()
-        }*/
-
         stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
         Log.i("PREDICT", "Style Predict Time to run: $stylePredictTime")
 
@@ -156,7 +150,6 @@ class StyleTransferModelExecutor(
         //                           + (1 - content_blending_ratio) * style_bottleneck
 
         // Apply style inheritance by changing values with seekbar integers
-
         for (i in 0 until contentBottleneck[0][0][0].size) {
             contentBottleneck[0][0][0][i] =
                 contentBottleneck[0][0][0][i] * contentBlendingRatio.toFloat()
@@ -173,7 +166,7 @@ class StyleTransferModelExecutor(
         }
 
         stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
-        Log.e("PREDICT", "Style Predict Time to run: $stylePredictTime")
+        Log.i("PREDICT", "Style Predict Time to run: $stylePredictTime")
 
     }
 
