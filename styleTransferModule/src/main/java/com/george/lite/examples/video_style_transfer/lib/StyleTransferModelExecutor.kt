@@ -39,9 +39,16 @@ class StyleTransferModelExecutor(
     private var postProcessTime = 0L
 
     // Variables that required to run only once at the beginning
-    private lateinit var inputsForPredict: Array<Any>
-    private lateinit var outputsForPredict: HashMap<Int, Any>
-    private var styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
+    private lateinit var inputsStyleForPredict: Array<Any>
+    private lateinit var inputsContentForPredict: Array<Any>
+    private lateinit var outputsForPredictStyle: HashMap<Int, Any>
+    private lateinit var outputsForPredictContent: HashMap<Int, Any>
+    private var contentBottleneck =
+        Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
+    private var styleBottleneck =
+        Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
+    private var styleBottleneckBlended =
+        Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
 
     init {
         if (useGPU) {
@@ -66,34 +73,107 @@ class StyleTransferModelExecutor(
         private const val STYLE_TRANSFER_FLOAT16_MODEL = "style_transfer_f16_384.tflite"
     }
 
-    fun selectStyle(
+    fun mainSelectStyle(
         styleImageName: String,
-        styleInheritance: Int,
+        styleInheritance: Float,
         context: Context
     ) {
 
+        stylePredictTime = SystemClock.uptimeMillis()
         val styleBitmap =
             ImageUtils.loadBitmapFromResources(context, "thumbnails/$styleImageName")
-        val input =
+        val inputStyle =
             ImageUtils.bitmapToByteBuffer(styleBitmap, STYLE_IMAGE_SIZE, STYLE_IMAGE_SIZE)
 
-        inputsForPredict = arrayOf(input)
-        outputsForPredict = HashMap()
+        inputsStyleForPredict = arrayOf(inputStyle)
+        outputsForPredictStyle = HashMap()
         //val styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
-        outputsForPredict[0] = styleBottleneck
+        outputsForPredictStyle[0] = styleBottleneckBlended
         preProcessTime = SystemClock.uptimeMillis() - preProcessTime
 
-        stylePredictTime = SystemClock.uptimeMillis()
-        interpreterPredict.runForMultipleInputsOutputs(inputsForPredict, outputsForPredict)
+        interpreterPredict.runForMultipleInputsOutputs(
+            inputsStyleForPredict,
+            outputsForPredictStyle
+        )
 
         // Apply style inheritance by changing values with seekbar integers
-        for (i in 0 until styleBottleneck[0][0][0].size) {
-            Log.i("Style_number", styleBottleneck[0][0][0].size.toString())
-            styleBottleneck[0][0][0][i] = styleBottleneck[0][0][0][i] / styleInheritance.toFloat()
-        }
+        /*for (i in 0 until styleBottleneckBlended[0][0][0].size) {
+            Log.i("Style_number", styleBottleneckBlended[0][0][0].size.toString())
+            styleBottleneckBlended[0][0][0][i] = styleBottleneckBlended[0][0][0][i] / styleInheritance.toFloat()
+        }*/
 
         stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
         Log.i("PREDICT", "Style Predict Time to run: $stylePredictTime")
+
+    }
+
+    fun selectStyle(
+        styleImageName: String,
+        styleInheritance: Float,
+        contentBitmap: Bitmap,
+        context: Context
+    ) {
+
+        stylePredictTime = SystemClock.uptimeMillis()
+        val styleBitmap =
+            ImageUtils.loadBitmapFromResources(context, "thumbnails/$styleImageName")
+        val inputStyle =
+            ImageUtils.bitmapToByteBuffer(styleBitmap, STYLE_IMAGE_SIZE, STYLE_IMAGE_SIZE)
+        val inputContent =
+            ImageUtils.bitmapToByteBuffer(contentBitmap, STYLE_IMAGE_SIZE, STYLE_IMAGE_SIZE)
+
+        inputsStyleForPredict = arrayOf(inputStyle)
+        inputsContentForPredict = arrayOf(inputContent)
+        outputsForPredictStyle = HashMap()
+        outputsForPredictContent = HashMap()
+
+        //val styleBottleneck = Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
+        outputsForPredictStyle[0] = styleBottleneck
+        outputsForPredictContent[0] = contentBottleneck
+        preProcessTime = SystemClock.uptimeMillis() - preProcessTime
+        // Run for style
+        interpreterPredict.runForMultipleInputsOutputs(
+            inputsStyleForPredict,
+            outputsForPredictStyle
+        )
+        // Run for blending
+        interpreterPredict.runForMultipleInputsOutputs(
+            inputsContentForPredict,
+            outputsForPredictContent
+        )
+
+        val contentBlendingRatio = styleInheritance
+
+        // Calculation of style blending
+        // # Define content blending ratio between [0..1].
+        //# 0.0: 0% style extracts from content image.
+        //# 1.0: 100% style extracted from content image.
+        //content_blending_ratio = 0.5
+        //
+        //# Blend the style bottleneck of style image and content image
+        //style_bottleneck_blended = content_blending_ratio * style_bottleneck_content \
+        //
+        //                           + (1 - content_blending_ratio) * style_bottleneck
+
+        // Apply style inheritance by changing values with seekbar integers
+
+        for (i in 0 until contentBottleneck[0][0][0].size) {
+            contentBottleneck[0][0][0][i] =
+                contentBottleneck[0][0][0][i] * contentBlendingRatio.toFloat()
+        }
+
+        for (i in styleBottleneck[0][0][0].indices) {
+            styleBottleneck[0][0][0][i] =
+                styleBottleneck[0][0][0][i] * (1 - contentBlendingRatio).toFloat()
+        }
+
+        for (i in 0 until styleBottleneckBlended[0][0][0].size) {
+            styleBottleneckBlended[0][0][0][i] =
+                contentBottleneck[0][0][0][i] + styleBottleneck[0][0][0][i]
+        }
+
+        stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime
+        Log.e("PREDICT", "Style Predict Time to run: $stylePredictTime")
 
     }
 
@@ -134,7 +214,7 @@ class StyleTransferModelExecutor(
             stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime*/
             //Log.e(TAG, "Style Predict Time to run: $stylePredictTime")
 
-            val inputsForStyleTransfer = arrayOf(contentArray, styleBottleneck)
+            val inputsForStyleTransfer = arrayOf(contentArray, styleBottleneckBlended)
             val outputsForStyleTransfer = HashMap<Int, Any>()
             val outputImage =
                 Array(1) { Array(CONTENT_IMAGE_SIZE) { Array(CONTENT_IMAGE_SIZE) { FloatArray(3) } } }

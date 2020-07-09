@@ -45,7 +45,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.george.lite.examples.video_style_transfer.*
 import com.george.lite.examples.video_style_transfer.adapters.SearchFragmentNavigationAdapter
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
@@ -54,13 +53,13 @@ import com.george.lite.examples.video_style_transfer.lib.StyleTransferModelExecu
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
-import org.koin.android.ext.android.bind
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.getKoin
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class StyleTransferFragment :
     Fragment(),
@@ -75,8 +74,9 @@ class StyleTransferFragment :
     private var doneInference = true
     private var isExecutorInitialized = false
     private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
-    private var styleNumber: Int = 1
+    private var styleNumber: Float = 0F
     private lateinit var binding: TfePnActivityStyleTransferBinding
+    private lateinit var scaledBitmap: Bitmap
 
     /** A shape for extracting frame data.   */
     private val PREVIEW_WIDTH = 640
@@ -215,7 +215,11 @@ class StyleTransferFragment :
             getKoin().setProperty(getString(R.string.koinUseGpu), viewModel.cpuGpu != "false")
             styleTransferModelExecutor = get()
             //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
-            styleTransferModelExecutor.selectStyle(viewModel.stylename, styleNumber, activity!!)
+            styleTransferModelExecutor.mainSelectStyle(
+                viewModel.stylename,
+                styleNumber,
+                activity!!
+            )
             getKoin().setProperty(getString(R.string.koinStyle), viewModel.stylename)
             Log.d(TAG, "Executor created")
             isExecutorInitialized = true
@@ -246,7 +250,9 @@ class StyleTransferFragment :
 
                     //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
                     styleTransferModelExecutor.selectStyle(
-                        getKoin().getProperty(getString(R.string.koinStyle))!!, styleNumber,
+                        getKoin().getProperty(getString(R.string.koinStyle))!!,
+                        styleNumber,
+                        scaledBitmap,
                         activity!!
                     )
                     binding.progressBar.visibility = View.INVISIBLE
@@ -254,36 +260,6 @@ class StyleTransferFragment :
                 }
             }
 
-
-            // Setting up Seekbar for style inheritance
-            binding.seekBar.progress = 0;
-            binding.seekBar.incrementProgressBy(1);
-            binding.seekBar.max = 4;
-            binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-
-                override fun onProgressChanged(
-                    seekBar: SeekBar?,
-                    progress: Int,
-                    fromUser: Boolean
-                ) {
-                    styleNumber = progress
-                    Log.i("SeekBar", styleNumber.toString())
-
-                    styleTransferModelExecutor.selectStyle(
-                        getKoin().getProperty(getString(R.string.koinStyle))!!, styleNumber,
-                        activity!!
-                    )
-                }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                    Toast.makeText(
-                        activity!!, "Style inheritance is :$styleNumber",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
 
         }
 
@@ -325,6 +301,42 @@ class StyleTransferFragment :
     override fun onResume() {
         super.onResume()
         startBackgroundThread()
+        setUpSeekBar()
+    }
+
+    private fun setUpSeekBar() {
+        // Setting up Seekbar for style inheritance
+        binding.seekBar.progress = 0;
+        binding.seekBar.incrementProgressBy(0);
+        binding.seekBar.max = 5;
+        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean
+            ) {
+                styleNumber = .2f * progress
+                Log.i("SeekBar", styleNumber.toString())
+
+                styleTransferModelExecutor.selectStyle(
+                    getKoin().getProperty(getString(R.string.koinStyle))!!,
+                    styleNumber,
+                    scaledBitmap,
+                    activity!!
+                )
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                Toast.makeText(
+                    activity!!,
+                    "Style inheritance is: " + ((1f - styleNumber) * 100).roundToInt().toString() + "%",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
     }
 
     override fun onStart() {
@@ -340,7 +352,7 @@ class StyleTransferFragment :
 
     override fun onDestroy() {
         super.onDestroy()
-        if(isExecutorInitialized){
+        if (isExecutorInitialized) {
             styleTransferModelExecutor.close()
         }
     }
@@ -628,7 +640,7 @@ class StyleTransferFragment :
         val croppedBitmap = cropBitmap(bitmap)
 
         // Created scaled version of bitmap for model input.
-        val scaledBitmap = Bitmap.createScaledBitmap(
+        scaledBitmap = Bitmap.createScaledBitmap(
             croppedBitmap,
             MODEL_WIDTH,
             MODEL_HEIGHT, true
@@ -758,7 +770,7 @@ class StyleTransferFragment :
     }
 
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
-        styleTransferModelExecutor.selectStyle(type, styleNumber, activity!!)
+        styleTransferModelExecutor.selectStyle(type, styleNumber, scaledBitmap, activity!!)
         getKoin().setProperty(getString(R.string.koinStyle), type)
         viewModel.setStyleName(type)
     }
