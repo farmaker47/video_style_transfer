@@ -19,8 +19,8 @@ class VideoStyleTransferApplication : Application() {
             //androidContext(applicationContext)
             androidContext(this@VideoStyleTransferApplication)
             modules(
-                machineLearningExecutionModule,
-                styleExecutorModule
+                //styleExecutorModule,
+                machineLearningExecutionModule
             )
         }
 

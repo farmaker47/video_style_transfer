@@ -309,6 +309,7 @@ class StyleTransferModelExecutor(
     }
 
     fun close() {
+        interpreterPredict.close()
         interpreterTransform.close()
         if (gpuDelegate != null) {
             gpuDelegate!!.close()

@@ -259,6 +259,9 @@ class StyleTransferFragment :
                 }
             }
 
+            // Send styletransfermodelexecutor to close it when destroy of viewmodel
+            viewModel.setStyleExecutorModule(styleTransferModelExecutor)
+
             // After rotation we select style and seekbar progress
             Log.e("SEEKBAR_NUMBER", getKoin().getProperty(getString(R.string.koinStyle))!!)
             styleTransferModelExecutor.selectStyle(

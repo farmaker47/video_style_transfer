@@ -10,7 +10,11 @@ import androidx.lifecycle.MutableLiveData
 //import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 
-class MLExecutionViewModel(application: Application) : AndroidViewModel(application) {
+class MLExecutionViewModel(
+    application: Application
+) : AndroidViewModel(application) {
+
+    lateinit var styleTransferModelExecutorObject:StyleTransferModelExecutor
 
     private val _styledBitmap = MutableLiveData<ModelExecutionResult>()
     val styledBitmap: LiveData<ModelExecutionResult>
@@ -38,6 +42,7 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
     private val viewModelScope = CoroutineScope(viewModelJob)
 
     init {
+        //styleTransferModelExecutorObject = styleTransferModelExecutor
         _inferenceDone.value = true
         stylename = "mona.JPG"
         cpuGpu = "false"
@@ -55,6 +60,11 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
 
     fun setTypeCpuGpu(string: String) {
         cpuGpu = string
+    }
+
+    fun setStyleExecutorModule(styleTransferModelExecutor: StyleTransferModelExecutor){
+        styleTransferModelExecutorObject=styleTransferModelExecutor
+        Log.e("VIEWMODEL","RUN")
     }
 
     fun onApplyStyle(
@@ -78,6 +88,8 @@ class MLExecutionViewModel(application: Application) : AndroidViewModel(applicat
     override fun onCleared() {
         super.onCleared()
         viewModelJob.cancel()
+        styleTransferModelExecutorObject.close()
+        Log.e("VIEWMODEL_DEAD","DEAD")
     }
 
 }
