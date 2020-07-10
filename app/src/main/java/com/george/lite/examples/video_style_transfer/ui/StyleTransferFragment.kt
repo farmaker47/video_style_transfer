@@ -213,10 +213,10 @@ class StyleTransferFragment :
         mainScope.async(inferenceThread) {
             getKoin().setProperty(getString(R.string.koinUseGpu), viewModel.cpuGpu != "false")
             styleTransferModelExecutor = get()
-            //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+            //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, viewModel.cpuGpu == "false")
             styleTransferModelExecutor.mainSelectStyle(
                 viewModel.stylename,
-                styleNumber,
+                viewModel.seekBarProgress * 0.2F,
                 activity!!
             )
             getKoin().setProperty(getString(R.string.koinStyle), viewModel.stylename)
@@ -260,12 +260,15 @@ class StyleTransferFragment :
             }
 
             // After rotation we select style and seekbar progress
+            Log.e("SEEKBAR_NUMBER", getKoin().getProperty(getString(R.string.koinStyle))!!)
             styleTransferModelExecutor.selectStyle(
                 getKoin().getProperty(getString(R.string.koinStyle))!!,
                 viewModel.seekBarProgress * 0.2F,
                 scaledBitmap,
                 activity!!
             )
+
+            Log.e("SEEKBAR_Last", (viewModel.seekBarProgress * 0.2F).toString())
 
         }
 
@@ -356,16 +359,20 @@ class StyleTransferFragment :
     }
 
     override fun onPause() {
-        closeCamera()
-        stopBackgroundThread()
         super.onPause()
+        stopBackgroundThread()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        closeCamera()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (isExecutorInitialized) {
-            styleTransferModelExecutor.close()
-        }
+        /*if (isExecutorInitialized) {
+            styleTransferModelExecutor.closeDestroy()
+        }*/
     }
 
     private fun requestCameraPermission() {

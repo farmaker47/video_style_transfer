@@ -79,6 +79,7 @@ class StyleTransferModelExecutor(
         context: Context
     ) {
 
+        Log.e("Executor_main", styleInheritance.toString())
         stylePredictTime = SystemClock.uptimeMillis()
         val styleBitmap =
             ImageUtils.loadBitmapFromResources(context, "thumbnails/$styleImageName")
@@ -108,6 +109,7 @@ class StyleTransferModelExecutor(
         context: Context
     ) {
 
+        Log.e("Executor", styleInheritance.toString())
         stylePredictTime = SystemClock.uptimeMillis()
         val styleBitmap =
             ImageUtils.loadBitmapFromResources(context, "thumbnails/$styleImageName")
@@ -298,8 +300,15 @@ class StyleTransferModelExecutor(
         return sb.toString()
     }
 
-    fun close() {
+    fun closeDestroy() {
         interpreterPredict.close()
+        interpreterTransform.close()
+        if (gpuDelegate != null) {
+            gpuDelegate!!.close()
+        }
+    }
+
+    fun close() {
         interpreterTransform.close()
         if (gpuDelegate != null) {
             gpuDelegate!!.close()
