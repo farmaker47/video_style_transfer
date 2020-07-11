@@ -31,4 +31,6 @@ The on-device model comes with several benefits. It is:
 
 **Screenshot**
 
-![](video_style_transfer_myself.jpg =128x270)
+![](video_style_transfer_myself.jpg)
+
+<img src="video_style_transfer_myself.jpg" width="100" height="100">
