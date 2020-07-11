@@ -14,7 +14,8 @@ class MLExecutionViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    lateinit var styleTransferModelExecutorObject:StyleTransferModelExecutor
+    lateinit var styleTransferModelExecutorObject: StyleTransferModelExecutor
+    lateinit var scaledBitmapObject: Bitmap
 
     private val _styledBitmap = MutableLiveData<ModelExecutionResult>()
     val styledBitmap: LiveData<ModelExecutionResult>
@@ -30,7 +31,6 @@ class MLExecutionViewModel(
 
     private val _totalTimeInference = MutableLiveData<Int>()
 
-    // The external LiveData for the SelectedNews
     val totalTimeInference: LiveData<Int>
         get() = _totalTimeInference
 
@@ -42,7 +42,6 @@ class MLExecutionViewModel(
     private val viewModelScope = CoroutineScope(viewModelJob)
 
     init {
-        //styleTransferModelExecutorObject = styleTransferModelExecutor
         _inferenceDone.value = true
         stylename = "mona.JPG"
         cpuGpu = "false"
@@ -62,9 +61,13 @@ class MLExecutionViewModel(
         cpuGpu = string
     }
 
-    fun setStyleExecutorModule(styleTransferModelExecutor: StyleTransferModelExecutor){
-        styleTransferModelExecutorObject=styleTransferModelExecutor
-        Log.e("VIEWMODEL","RUN")
+    // this should change with DI
+    fun setStyleExecutorModule(styleTransferModelExecutor: StyleTransferModelExecutor) {
+        styleTransferModelExecutorObject = styleTransferModelExecutor
+    }
+
+    fun setScaledBitmap(bitmap: Bitmap) {
+        scaledBitmapObject = bitmap
     }
 
     fun onApplyStyle(
@@ -89,7 +92,6 @@ class MLExecutionViewModel(
         super.onCleared()
         viewModelJob.cancel()
         styleTransferModelExecutorObject.close()
-        Log.e("VIEWMODEL_DEAD","DEAD")
     }
 
 }

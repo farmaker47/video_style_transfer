@@ -211,16 +211,21 @@ class StyleTransferFragment :
 
         // First use of style executor class
         mainScope.async(inferenceThread) {
+            // At start show progress bar
+            binding.progressBar.visibility = View.VISIBLE
             getKoin().setProperty(getString(R.string.koinUseGpu), viewModel.cpuGpu != "false")
+
+            // Initialize Executor class with Koin
             styleTransferModelExecutor = get()
             //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, viewModel.cpuGpu == "false")
-            styleTransferModelExecutor.mainSelectStyle(
+
+            styleTransferModelExecutor.firstSelectStyle(
                 viewModel.stylename,
                 viewModel.seekBarProgress * 0.2F,
                 activity!!
             )
             getKoin().setProperty(getString(R.string.koinStyle), viewModel.stylename)
-            Log.d(TAG, "Executor created")
+
             isExecutorInitialized = true
 
             // and then set switch
@@ -262,17 +267,16 @@ class StyleTransferFragment :
             // Send styletransfermodelexecutor to close it when destroy of viewmodel
             viewModel.setStyleExecutorModule(styleTransferModelExecutor)
 
+            // Make progress bar invisible
+            binding.progressBar.visibility = View.INVISIBLE
+
             // After rotation we select style and seekbar progress
-            Log.e("SEEKBAR_NUMBER", getKoin().getProperty(getString(R.string.koinStyle))!!)
             styleTransferModelExecutor.selectStyle(
                 getKoin().getProperty(getString(R.string.koinStyle))!!,
                 viewModel.seekBarProgress * 0.2F,
-                scaledBitmap,
+                viewModel.scaledBitmapObject,
                 activity!!
             )
-
-            Log.e("SEEKBAR_Last", (viewModel.seekBarProgress * 0.2F).toString())
-
         }
 
         // Observe viewmodel object
@@ -284,7 +288,6 @@ class StyleTransferFragment :
                         .load(resultImage.styledImage)
                         .fitCenter()
                         .into(binding.imageViewStyled)*/
-                    //binding.imageViewStyled.setImageBitmap(getBitmapFromAsset(activity!!,"style0.jpg"))
                     binding.imageViewStyled.setImageBitmap(resultImage.styledImage)
                 }
             }
@@ -318,6 +321,7 @@ class StyleTransferFragment :
 
     private fun setUpSeekBar() {
         // Setting up Seekbar for style inheritance
+
         binding.seekBar.progress = viewModel.seekBarProgress.toInt();
         Log.i("SeekBarProgress", binding.seekBar.progress.toString())
 
@@ -330,17 +334,21 @@ class StyleTransferFragment :
                 progress: Int,
                 fromUser: Boolean
             ) {
-                styleNumber = .2f * progress
-                Log.i("SeekBar", styleNumber.toString())
 
-                styleTransferModelExecutor.selectStyle(
-                    getKoin().getProperty(getString(R.string.koinStyle))!!,
-                    styleNumber,
-                    scaledBitmap,
-                    activity!!
-                )
+                // In case someone touches seekbar during initialization
+                if (isExecutorInitialized) {
+                    styleNumber = .2f * progress
+                    Log.i("SeekBar", styleNumber.toString())
 
-                viewModel.setTheSeekBarProgress(styleNumber / 0.2F)
+                    styleTransferModelExecutor.selectStyle(
+                        getKoin().getProperty(getString(R.string.koinStyle))!!,
+                        styleNumber,
+                        scaledBitmap,
+                        activity!!
+                    )
+
+                    viewModel.setTheSeekBarProgress(styleNumber / 0.2F)
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -348,12 +356,14 @@ class StyleTransferFragment :
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 Toast.makeText(
                     activity!!,
-                    "Style inheritance is: " + ((1f - styleNumber) * 100).roundToInt()
+                    "Style blending is: " + ((1f - styleNumber) * 100).roundToInt()
                         .toString() + "%",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         })
+
+
     }
 
     override fun onStart() {
@@ -373,6 +383,9 @@ class StyleTransferFragment :
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // This is transfered inside viewmodel to get closed only when application closes eg when viewmodel is cleared
+        // not on rotation
         /*if (isExecutorInitialized) {
             styleTransferModelExecutor.closeDestroy()
         }*/
@@ -667,6 +680,9 @@ class StyleTransferFragment :
             MODEL_HEIGHT, true
         )
 
+        // Pass scaledBitmap to viewmodel
+        viewModel.setScaledBitmap(scaledBitmap)
+
         if (doneInference && isExecutorInitialized) {
             viewModel.onApplyStyle(
                 activity!!, scaledBitmap, "zkate.jpg", styleTransferModelExecutor,
@@ -791,7 +807,12 @@ class StyleTransferFragment :
     }
 
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
-        styleTransferModelExecutor.selectStyle(type, viewModel.seekBarProgress * 0.2F, scaledBitmap, activity!!)
+        styleTransferModelExecutor.selectStyle(
+            type,
+            viewModel.seekBarProgress * 0.2F,
+            scaledBitmap,
+            activity!!
+        )
         getKoin().setProperty(getString(R.string.koinStyle), type)
         viewModel.setStyleName(type)
     }
