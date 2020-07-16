@@ -28,3 +28,7 @@ The on-device model comes with several benefits. It is:
 - Resource efficient: The model has a small memory footprint on the device.
 - Privacy-friendly: The user data never leaves the device and this eliminates any privacy restrictions.
 
+
+**Screenshot**
+
+<img src="video_style_transfer_myself.jpg" width="256" height="540">
