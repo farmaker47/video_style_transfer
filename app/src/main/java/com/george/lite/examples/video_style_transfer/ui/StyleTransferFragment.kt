@@ -190,7 +190,6 @@ class StyleTransferFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         binding = TfePnActivityStyleTransferBinding.inflate(inflater)
         binding.lifecycleOwner = this
 
@@ -240,6 +239,9 @@ class StyleTransferFragment :
             binding.switchUseGpu.setOnCheckedChangeListener { _, isChecked ->
                 //useGPU = isChecked
                 //Log.i("SWITCH_CHECKED", binding.switchUseGpu.isChecked.toString())
+
+                // Disable UI buttons
+                enableControls(false)
                 viewModel.setTypeCpuGpu(binding.switchUseGpu.isChecked.toString())
                 binding.progressBar.visibility = View.VISIBLE
 
@@ -261,6 +263,8 @@ class StyleTransferFragment :
                     )
                     binding.progressBar.visibility = View.INVISIBLE
                     isExecutorInitialized = true
+                    // Re-enable control buttons
+                    activity!!.runOnUiThread { enableControls(true) }
                 }
             }
 
@@ -307,6 +311,17 @@ class StyleTransferFragment :
 
     private fun getBitmapFromAsset(context: Context, path: String): Bitmap =
         context.assets.open(path).use { BitmapFactory.decodeStream(it) }
+
+    private fun enableControls(enable: Boolean) {
+        binding.switchUseGpu.isEnabled = enable
+        binding.seekBar.isEnabled = enable
+        if(enable){
+            binding.recyclerViewStyles.visibility = View.VISIBLE
+        }else{
+            binding.recyclerViewStyles.visibility = View.INVISIBLE
+        }
+
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         surfaceView = view.findViewById(R.id.surfaceView)

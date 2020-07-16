@@ -88,8 +88,6 @@ class MLExecutionViewModel(
 
     }
 
-
-
     override fun onCleared() {
         super.onCleared()
         viewModelJob.cancel()

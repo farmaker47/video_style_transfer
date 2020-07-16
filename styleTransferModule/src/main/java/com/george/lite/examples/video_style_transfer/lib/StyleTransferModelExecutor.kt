@@ -58,6 +58,8 @@ class StyleTransferModelExecutor(
         } else {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT8_MODEL, false)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, false)
+            val index = interpreterTransform.getInputIndex("content_image")
+            interpreterTransform.resizeInput(index, intArrayOf(1, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE, 3))
             Log.i("GPU_FALSE", "FALSE")
         }
     }
