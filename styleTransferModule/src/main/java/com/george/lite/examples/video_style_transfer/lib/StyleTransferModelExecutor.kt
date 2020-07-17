@@ -71,8 +71,8 @@ class StyleTransferModelExecutor(
         private const val BOTTLENECK_SIZE = 100
         private const val STYLE_PREDICT_INT8_MODEL = "style_predict_int8.tflite"
         private const val STYLE_TRANSFER_INT8_MODEL = "style_transfer_int8.tflite"
-        private const val STYLE_PREDICT_FLOAT16_MODEL = "style_predict_f16_256.tflite"
-        private const val STYLE_TRANSFER_FLOAT16_MODEL = "style_transfer_f16_384.tflite"
+        private const val STYLE_PREDICT_FLOAT16_MODEL = "style_predict_f16_shayak.tflite"
+        private const val STYLE_TRANSFER_FLOAT16_MODEL = "style_transfer_f16_shayak.tflite"
     }
 
      // Select style at the beginning
