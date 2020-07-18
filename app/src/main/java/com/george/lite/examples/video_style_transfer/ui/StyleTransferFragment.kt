@@ -314,7 +314,8 @@ class StyleTransferFragment :
 
     private fun enableControls(enable: Boolean) {
         binding.switchUseGpu.isEnabled = enable
-        binding.seekBar.isEnabled = enable
+        binding.seekBarStyle.isEnabled = enable
+        binding.seekBarQuality.isEnabled = enable
         if(enable){
             binding.recyclerViewStyles.visibility = View.VISIBLE
         }else{
@@ -331,18 +332,84 @@ class StyleTransferFragment :
     override fun onResume() {
         super.onResume()
         startBackgroundThread()
-        setUpSeekBar()
+        setUpSeekBarStyle()
+        setUpSeekBarQuality()
     }
 
-    private fun setUpSeekBar() {
+    private fun setUpSeekBarQuality() {
+        // Setting up Seekbar for video quality selection
+
+        binding.seekBarQuality.incrementProgressBy(0);
+        binding.seekBarQuality.max = 5;
+        binding.seekBarQuality.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean
+            ) {
+
+                // In case someone touches seekbar during initialization
+                if (isExecutorInitialized) {
+                    /*styleNumber = .2f * progress
+                    Log.i("SeekBar", styleNumber.toString())
+
+                    styleTransferModelExecutor.selectStyle(
+                        getKoin().getProperty(getString(R.string.koinStyle))!!,
+                        styleNumber,
+                        scaledBitmap,
+                        activity!!
+                    )
+
+                    viewModel.setTheSeekBarProgress(styleNumber / 0.2F)*/
+                    //styleTransferModelExecutor.selectVideoQuality(200)
+
+                    // Disable UI buttons
+                    enableControls(false)
+                    binding.progressBar.visibility = View.VISIBLE
+
+                    // Reinitialize TF Lite models with new GPU setting
+                    mainScope.async(inferenceThread) {
+                        styleTransferModelExecutor.close()
+                        isExecutorInitialized = false
+                        //getKoin().setProperty(getString(R.string.koinUseGpu), isChecked)
+
+                        // Because we used factory at koin module here we get a new instance of object
+                        styleTransferModelExecutor = get()
+
+                        //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+                        styleTransferModelExecutor.selectVideoQuality(200)
+                        binding.progressBar.visibility = View.INVISIBLE
+                        isExecutorInitialized = true
+                        // Re-enable control buttons
+                        activity!!.runOnUiThread { enableControls(true) }
+                    }
+
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                /*Toast.makeText(
+                    activity!!,
+                    "Style blending is: " + ((1f - styleNumber) * 100).roundToInt()
+                        .toString() + "%",
+                    Toast.LENGTH_SHORT
+                ).show()*/
+            }
+        })
+    }
+
+    private fun setUpSeekBarStyle() {
         // Setting up Seekbar for style inheritance
 
-        binding.seekBar.progress = viewModel.seekBarProgress.toInt();
-        Log.i("SeekBarProgress", binding.seekBar.progress.toString())
+        binding.seekBarStyle.progress = viewModel.seekBarProgress.toInt();
+        Log.i("SeekBarProgress", binding.seekBarStyle.progress.toString())
 
-        binding.seekBar.incrementProgressBy(0);
-        binding.seekBar.max = 5;
-        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.seekBarStyle.incrementProgressBy(0);
+        binding.seekBarStyle.max = 5;
+        binding.seekBarStyle.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 
             override fun onProgressChanged(
                 seekBar: SeekBar?,
@@ -377,8 +444,6 @@ class StyleTransferFragment :
                 ).show()
             }
         })
-
-
     }
 
     override fun onStart() {

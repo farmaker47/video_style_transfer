@@ -29,14 +29,16 @@ class StyleTransferModelExecutor(
     private var gpuDelegate: GpuDelegate = GpuDelegate()
     private var numberThreads = 4
 
-    private val interpreterPredict: Interpreter
-    private val interpreterTransform: Interpreter
+    private var interpreterPredict: Interpreter
+    private var interpreterTransform: Interpreter
 
     private var fullExecutionTime = 0L
     private var preProcessTime = 0L
     private var stylePredictTime = 0L
     private var styleTransferTime = 0L
     private var postProcessTime = 0L
+
+    private val mContext = context
 
     // Variables that required to run only once at the beginning
     private lateinit var inputsStyleForPredict: Array<Any>
@@ -50,16 +52,23 @@ class StyleTransferModelExecutor(
     private var styleBottleneckBlended =
         Array(1) { Array(1) { Array(1) { FloatArray(BOTTLENECK_SIZE) } } }
 
+    private var CONTENT_IMAGE_SIZE: Int
+
     init {
+        CONTENT_IMAGE_SIZE = 384
         if (useGPU) {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_FLOAT16_MODEL, true)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_FLOAT16_MODEL, true)
             Log.i("GPU_TRUE", "TRUE")
         } else {
-            interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT8_MODEL, false)
-            interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT8_MODEL, false)
+            interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT_MODEL, false)
+
+            interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT_MODEL, false)
             val index = interpreterTransform.getInputIndex("content_image")
-            interpreterTransform.resizeInput(index, intArrayOf(1, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE, 3))
+            interpreterTransform.resizeInput(
+                index,
+                intArrayOf(1, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE, 3)
+            )
             Log.i("GPU_FALSE", "FALSE")
         }
     }
@@ -67,15 +76,14 @@ class StyleTransferModelExecutor(
     companion object {
         private const val TAG = "StyleTransferMExec"
         private const val STYLE_IMAGE_SIZE = 256
-        private const val CONTENT_IMAGE_SIZE = 384
         private const val BOTTLENECK_SIZE = 100
-        private const val STYLE_PREDICT_INT8_MODEL = "style_predict_int8.tflite"
-        private const val STYLE_TRANSFER_INT8_MODEL = "style_transfer_int8.tflite"
+        private const val STYLE_PREDICT_INT_MODEL = "style_predict_hybrid_last.tflite"
+        private const val STYLE_TRANSFER_INT_MODEL = "style_transfer_hybrid_last.tflite"
         private const val STYLE_PREDICT_FLOAT16_MODEL = "style_predict_f16_shayak.tflite"
         private const val STYLE_TRANSFER_FLOAT16_MODEL = "style_transfer_f16_shayak.tflite"
     }
 
-     // Select style at the beginning
+    // Select style at the beginning
     fun firstSelectStyle(
         styleImageName: String,
         styleInheritance: Float,
@@ -91,7 +99,7 @@ class StyleTransferModelExecutor(
         inputsStyleForPredict = arrayOf(inputStyle)
         outputsForPredictStyle = HashMap()
 
-         // Stylebottleneckblended is calculated once and used inside style transfer
+        // Stylebottleneckblended is calculated once and used inside style transfer
         outputsForPredictStyle[0] = styleBottleneckBlended
         preProcessTime = SystemClock.uptimeMillis() - preProcessTime
 
@@ -172,6 +180,20 @@ class StyleTransferModelExecutor(
 
     }
 
+    fun selectVideoQuality(value: Int) {
+
+        CONTENT_IMAGE_SIZE = value
+        Log.e("CONTENT_SIZE", CONTENT_IMAGE_SIZE.toString())
+
+        interpreterPredict = getInterpreter(mContext, STYLE_PREDICT_INT_MODEL, false)
+        interpreterTransform = getInterpreter(mContext, STYLE_TRANSFER_INT_MODEL, false)
+        val index = interpreterTransform.getInputIndex("content_image")
+        interpreterTransform.resizeInput(
+            index,
+            intArrayOf(1, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE, 3)
+        )
+    }
+
     fun execute(
         contentImageBitmap: Bitmap,
         styleImageName: String,
@@ -208,7 +230,11 @@ class StyleTransferModelExecutor(
             interpreterPredict.runForMultipleInputsOutputs(inputsForPredict, outputsForPredict)
             stylePredictTime = SystemClock.uptimeMillis() - stylePredictTime*/
 
-            val inputsForStyleTransfer = arrayOf(contentArray, styleBottleneckBlended)
+            val inputsForStyleTransfer = if (useGPU) {
+                arrayOf(contentArray, styleBottleneckBlended)
+            } else {
+                arrayOf(styleBottleneckBlended, contentArray)
+            }
             val outputsForStyleTransfer = HashMap<Int, Any>()
             val outputImage =
                 Array(1) { Array(CONTENT_IMAGE_SIZE) { Array(CONTENT_IMAGE_SIZE) { FloatArray(3) } } }

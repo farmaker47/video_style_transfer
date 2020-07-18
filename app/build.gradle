@@ -63,8 +63,8 @@ dependencies {
     //kapt "com.github.bumptech.glide:compiler:4.11.0"
 
     // Coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.5"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.7"
 
     // Koin for Kotlin
     def koin_version = "2.1.5"

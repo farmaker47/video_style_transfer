@@ -21,4 +21,6 @@
   <string name="textViewText">Style your video</string>
     <string name="koinUseGpu">koinUseGpu</string>
   <string name="koinStyle">koinStyle</string>
+    <string name="style_blending">Style blending</string>
+  <string name="video_quality">Video Quality</string>
 </resources>
