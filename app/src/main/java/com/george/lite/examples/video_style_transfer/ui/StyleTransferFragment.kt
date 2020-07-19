@@ -377,7 +377,17 @@ class StyleTransferFragment :
                         // Because we used factory at koin module here we get a new instance of object
                         styleTransferModelExecutor = get()
 
+                        // Select style to init the interpreterpredict result
+                        styleTransferModelExecutor.selectStyle(
+                            getKoin().getProperty(getString(R.string.koinStyle))!!,
+                            viewModel.seekBarProgress * 0.2F,
+                            viewModel.scaledBitmapObject,
+                            activity!!
+                        )
+
                         //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+
+                        //Select video quality
                         styleTransferModelExecutor.selectVideoQuality(200)
                         binding.progressBar.visibility = View.INVISIBLE
                         isExecutorInitialized = true

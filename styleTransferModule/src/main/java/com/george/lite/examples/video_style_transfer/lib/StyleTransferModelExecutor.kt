@@ -60,6 +60,7 @@ class StyleTransferModelExecutor(
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_FLOAT16_MODEL, true)
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_FLOAT16_MODEL, true)
             Log.i("GPU_TRUE", "TRUE")
+            Log.i("GPU_TRUE", CONTENT_IMAGE_SIZE.toString())
         } else {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT_MODEL, false)
 
@@ -69,7 +70,8 @@ class StyleTransferModelExecutor(
                 index,
                 intArrayOf(1, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE, 3)
             )
-            Log.i("GPU_FALSE", "FALSE")
+            Log.e("GPU_FALSE", "FALSE")
+            Log.e("GPU_FALSE", CONTENT_IMAGE_SIZE.toString())
         }
     }
 
@@ -235,6 +237,7 @@ class StyleTransferModelExecutor(
             } else {
                 arrayOf(styleBottleneckBlended, contentArray)
             }
+
             val outputsForStyleTransfer = HashMap<Int, Any>()
             val outputImage =
                 Array(1) { Array(CONTENT_IMAGE_SIZE) { Array(CONTENT_IMAGE_SIZE) { FloatArray(3) } } }
@@ -326,8 +329,8 @@ class StyleTransferModelExecutor(
     }
 
     fun close() {
-        interpreterPredict.close()
-        interpreterTransform.close()
+        //interpreterPredict.close()
+        //interpreterTransform.close()
         gpuDelegate.close()
     }
 }

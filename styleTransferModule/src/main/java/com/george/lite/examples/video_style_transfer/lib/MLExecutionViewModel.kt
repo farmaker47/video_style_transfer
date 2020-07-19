@@ -77,15 +77,24 @@ class MLExecutionViewModel(
         styleTransferModelExecutor: StyleTransferModelExecutor,
         inferenceThread: ExecutorCoroutineDispatcher
     ) {
-        viewModelScope.launch(inferenceThread) {
-            _inferenceDone.postValue(false)
-            val result =
-                styleTransferModelExecutor.execute(contentBitmap, styleFilePath, context)
-            _totalTimeInference.postValue(result.totalExecutionTime.toInt())
-            _styledBitmap.postValue(result)
-            _inferenceDone.postValue(true)
+        viewModelScope.launch {
+            inferenceExecute(styleTransferModelExecutor, contentBitmap, styleFilePath, context)
         }
 
+    }
+
+    private suspend fun inferenceExecute (
+        styleTransferModelExecutor: StyleTransferModelExecutor,
+        contentBitmap: Bitmap,
+        styleFilePath: String,
+        context: Context
+    ) = withContext(Dispatchers.IO){
+        _inferenceDone.postValue(false)
+        val result =
+            styleTransferModelExecutor.execute(contentBitmap, styleFilePath, context)
+        _totalTimeInference.postValue(result.totalExecutionTime.toInt())
+        _styledBitmap.postValue(result)
+        _inferenceDone.postValue(true)
     }
 
     override fun onCleared() {
