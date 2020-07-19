@@ -50,9 +50,7 @@ import com.george.lite.examples.video_style_transfer.adapters.SearchFragmentNavi
 import com.george.lite.examples.video_style_transfer.databinding.TfePnActivityStyleTransferBinding
 import com.george.lite.examples.video_style_transfer.lib.MLExecutionViewModel
 import com.george.lite.examples.video_style_transfer.lib.StyleTransferModelExecutor
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.getKoin
 import org.koin.android.viewmodel.ext.android.viewModel
@@ -76,6 +74,9 @@ class StyleTransferFragment :
     private var styleNumber: Float = 0F
     private lateinit var binding: TfePnActivityStyleTransferBinding
     private lateinit var scaledBitmap: Bitmap
+
+    private lateinit var FragmentJob: CompletableJob
+    private lateinit var fragmentScope: CoroutineScope
 
     /** A shape for extracting frame data.   */
     private val PREVIEW_WIDTH = 640
@@ -192,6 +193,11 @@ class StyleTransferFragment :
     ): View? {
         binding = TfePnActivityStyleTransferBinding.inflate(inflater)
         binding.lifecycleOwner = this
+
+        // Job and corutine
+        FragmentJob = Job()
+        fragmentScope = CoroutineScope(FragmentJob + kotlinx.coroutines.Dispatchers.IO)
+
 
         // RecyclerView setup
         binding.recyclerViewStyles.setHasFixedSize(true)
@@ -316,9 +322,9 @@ class StyleTransferFragment :
         binding.switchUseGpu.isEnabled = enable
         binding.seekBarStyle.isEnabled = enable
         binding.seekBarQuality.isEnabled = enable
-        if(enable){
+        if (enable) {
             binding.recyclerViewStyles.visibility = View.VISIBLE
-        }else{
+        } else {
             binding.recyclerViewStyles.visibility = View.INVISIBLE
         }
 
@@ -432,12 +438,14 @@ class StyleTransferFragment :
                     styleNumber = .2f * progress
                     Log.i("SeekBar", styleNumber.toString())
 
-                    styleTransferModelExecutor.selectStyle(
-                        getKoin().getProperty(getString(R.string.koinStyle))!!,
-                        styleNumber,
-                        scaledBitmap,
-                        activity!!
-                    )
+                    fragmentScope.launch {
+                        styleTransferModelExecutor.selectStyle(
+                            getKoin().getProperty(getString(R.string.koinStyle))!!,
+                            styleNumber,
+                            scaledBitmap,
+                            activity!!
+                        )
+                    }
 
                     viewModel.setTheSeekBarProgress(styleNumber / 0.2F)
                 }
@@ -479,6 +487,7 @@ class StyleTransferFragment :
         /*if (isExecutorInitialized) {
             styleTransferModelExecutor.closeDestroy()
         }*/
+        FragmentJob.cancel()
     }
 
     private fun requestCameraPermission() {
@@ -897,12 +906,15 @@ class StyleTransferFragment :
     }
 
     override fun onListItemClick(itemIndex: Int, sharedImage: ImageView?, type: String) {
-        styleTransferModelExecutor.selectStyle(
-            type,
-            viewModel.seekBarProgress * 0.2F,
-            scaledBitmap,
-            activity!!
-        )
+
+        fragmentScope.launch {
+            styleTransferModelExecutor.selectStyle(
+                type,
+                viewModel.seekBarProgress * 0.2F,
+                scaledBitmap,
+                activity!!
+            )
+        }
         getKoin().setProperty(getString(R.string.koinStyle), type)
         viewModel.setStyleName(type)
     }

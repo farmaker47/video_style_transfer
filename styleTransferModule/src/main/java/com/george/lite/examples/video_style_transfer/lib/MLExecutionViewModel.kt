@@ -39,7 +39,7 @@ class MLExecutionViewModel(
     var seekBarProgress: Float = 0F
 
     private val viewModelJob = Job()
-    private val viewModelScope = CoroutineScope(viewModelJob)
+    private val viewModelScopeJob = CoroutineScope(viewModelJob + Dispatchers.IO)
 
     init {
         _inferenceDone.value = true
@@ -77,18 +77,18 @@ class MLExecutionViewModel(
         styleTransferModelExecutor: StyleTransferModelExecutor,
         inferenceThread: ExecutorCoroutineDispatcher
     ) {
-        viewModelScope.launch {
+        viewModelScopeJob.launch {
             inferenceExecute(styleTransferModelExecutor, contentBitmap, styleFilePath, context)
         }
 
     }
 
-    private suspend fun inferenceExecute (
+    private fun inferenceExecute (
         styleTransferModelExecutor: StyleTransferModelExecutor,
         contentBitmap: Bitmap,
         styleFilePath: String,
         context: Context
-    ) = withContext(Dispatchers.IO){
+    ) {
         _inferenceDone.postValue(false)
         val result =
             styleTransferModelExecutor.execute(contentBitmap, styleFilePath, context)
