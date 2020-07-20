@@ -37,6 +37,7 @@ class MLExecutionViewModel(
     var stylename = String()
     var cpuGpu = String()
     var seekBarProgress: Float = 0F
+    var seekBarQuality: Int = 0
 
     private val viewModelJob = Job()
     private val viewModelScopeJob = CoroutineScope(viewModelJob + Dispatchers.IO)
@@ -51,6 +52,10 @@ class MLExecutionViewModel(
 
     fun setTheSeekBarProgress(progress: Float) {
         seekBarProgress = progress
+    }
+
+    fun setTheSeekBarQuality(quality: Int) {
+        seekBarQuality = quality
     }
 
     fun setStyleName(string: String) {
@@ -83,7 +88,7 @@ class MLExecutionViewModel(
 
     }
 
-    private fun inferenceExecute (
+    private fun inferenceExecute(
         styleTransferModelExecutor: StyleTransferModelExecutor,
         contentBitmap: Bitmap,
         styleFilePath: String,

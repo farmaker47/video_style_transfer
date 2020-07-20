@@ -29,8 +29,8 @@ class StyleTransferModelExecutor(
     private var gpuDelegate: GpuDelegate = GpuDelegate()
     private var numberThreads = 4
 
-    private var interpreterPredict: Interpreter
-    private var interpreterTransform: Interpreter
+    private lateinit var interpreterPredict: Interpreter
+    private lateinit var interpreterTransform: Interpreter
 
     private var fullExecutionTime = 0L
     private var preProcessTime = 0L
@@ -61,7 +61,7 @@ class StyleTransferModelExecutor(
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_FLOAT16_MODEL, true)
             Log.i("GPU_TRUE", "TRUE")
             Log.i("GPU_TRUE", CONTENT_IMAGE_SIZE.toString())
-        } else {
+        } /*else {
             interpreterPredict = getInterpreter(context, STYLE_PREDICT_INT_MODEL, false)
 
             interpreterTransform = getInterpreter(context, STYLE_TRANSFER_INT_MODEL, false)
@@ -72,7 +72,7 @@ class StyleTransferModelExecutor(
             )
             Log.e("GPU_FALSE", "FALSE")
             Log.e("GPU_FALSE", CONTENT_IMAGE_SIZE.toString())
-        }
+        }*/
     }
 
     companion object {
@@ -183,9 +183,19 @@ class StyleTransferModelExecutor(
     }
 
     fun selectVideoQuality(value: Int) {
+        when(value) {
+            0 -> initializeIntrpreterForVideoQuality(200)
+            1 -> initializeIntrpreterForVideoQuality(240)
+            2 -> initializeIntrpreterForVideoQuality(260)
+            3 -> initializeIntrpreterForVideoQuality(300)
+            4 -> initializeIntrpreterForVideoQuality(340)
+            else -> initializeIntrpreterForVideoQuality(380)
+        }
+    }
 
+    private fun initializeIntrpreterForVideoQuality(value: Int) {
         CONTENT_IMAGE_SIZE = value
-        Log.e("CONTENT_SIZE", CONTENT_IMAGE_SIZE.toString())
+        Log.i("CONTENT_SIZE", CONTENT_IMAGE_SIZE.toString())
 
         interpreterPredict = getInterpreter(mContext, STYLE_PREDICT_INT_MODEL, false)
         interpreterTransform = getInterpreter(mContext, STYLE_TRANSFER_INT_MODEL, false)

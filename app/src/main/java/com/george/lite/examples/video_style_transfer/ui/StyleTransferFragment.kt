@@ -72,6 +72,7 @@ class StyleTransferFragment :
     private var isExecutorInitialized = false
     private lateinit var mSearchFragmentNavigationAdapter: SearchFragmentNavigationAdapter
     private var styleNumber: Float = 0F
+    private var qualityNumber: Int = 0
     private lateinit var binding: TfePnActivityStyleTransferBinding
     private lateinit var scaledBitmap: Bitmap
 
@@ -194,10 +195,9 @@ class StyleTransferFragment :
         binding = TfePnActivityStyleTransferBinding.inflate(inflater)
         binding.lifecycleOwner = this
 
-        // Job and corutine
+        // Job and coroutine
         FragmentJob = Job()
-        fragmentScope = CoroutineScope(FragmentJob + kotlinx.coroutines.Dispatchers.IO)
-
+        fragmentScope = CoroutineScope(FragmentJob + Dispatchers.IO)
 
         // RecyclerView setup
         binding.recyclerViewStyles.setHasFixedSize(true)
@@ -217,12 +217,16 @@ class StyleTransferFragment :
         // First use of style executor class
         mainScope.async(inferenceThread) {
             // At start show progress bar
+            isExecutorInitialized = false
             binding.progressBar.visibility = View.VISIBLE
             getKoin().setProperty(getString(R.string.koinUseGpu), viewModel.cpuGpu != "false")
 
             // Initialize Executor class with Koin
             styleTransferModelExecutor = get()
-            //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, viewModel.cpuGpu == "false")
+            //Select video quality
+            if (viewModel.cpuGpu == "false") {
+                styleTransferModelExecutor.selectVideoQuality(viewModel.seekBarQuality)
+            }
 
             styleTransferModelExecutor.firstSelectStyle(
                 viewModel.stylename,
@@ -230,8 +234,6 @@ class StyleTransferFragment :
                 activity!!
             )
             getKoin().setProperty(getString(R.string.koinStyle), viewModel.stylename)
-
-            isExecutorInitialized = true
 
             // and then set switch
             // this is done inside for rotation problem initialization
@@ -243,8 +245,6 @@ class StyleTransferFragment :
             // typically resulting in lower latency. In the best scenario,
             // inference on the GPU may now run fast enough for previously not available real-time applications.
             binding.switchUseGpu.setOnCheckedChangeListener { _, isChecked ->
-                //useGPU = isChecked
-                //Log.i("SWITCH_CHECKED", binding.switchUseGpu.isChecked.toString())
 
                 // Disable UI buttons
                 viewModel.setTypeCpuGpu(binding.switchUseGpu.isChecked.toString())
@@ -260,7 +260,11 @@ class StyleTransferFragment :
                     // Because we used factory at koin module here we get a new instance of object
                     styleTransferModelExecutor = get()
 
-                    //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
+                    if (viewModel.cpuGpu == "false") {
+                        styleTransferModelExecutor.selectVideoQuality(viewModel.seekBarQuality)
+                    }
+
+                    // Select style for blending
                     styleTransferModelExecutor.selectStyle(
                         getKoin().getProperty(getString(R.string.koinStyle))!!,
                         viewModel.seekBarProgress * 0.2F,
@@ -285,12 +289,19 @@ class StyleTransferFragment :
             binding.progressBar.visibility = View.INVISIBLE
 
             // After rotation we select style and seekbar progress
-            styleTransferModelExecutor.selectStyle(
-                getKoin().getProperty(getString(R.string.koinStyle))!!,
-                viewModel.seekBarProgress * 0.2F,
-                viewModel.scaledBitmapObject,
-                activity!!
-            )
+            try {
+                styleTransferModelExecutor.selectStyle(
+                    getKoin().getProperty(getString(R.string.koinStyle))!!,
+                    viewModel.seekBarProgress * 0.2F,
+                    viewModel.scaledBitmapObject,
+                    activity!!
+                )
+            }finally {
+                // We set lastly init of executor true to handle rotation problem of default style blending on 0 frame
+                isExecutorInitialized = true
+            }
+
+
         }
 
         // Observe viewmodel object
@@ -352,7 +363,6 @@ class StyleTransferFragment :
 
     private fun setUpSeekBarQuality() {
         // Setting up Seekbar for video quality selection
-
         binding.seekBarQuality.incrementProgressBy(0);
         binding.seekBarQuality.max = 5;
         binding.seekBarQuality.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -365,18 +375,7 @@ class StyleTransferFragment :
 
                 // In case someone touches seekbar during initialization
                 if (isExecutorInitialized) {
-                    /*styleNumber = .2f * progress
-                    Log.i("SeekBar", styleNumber.toString())
-
-                    styleTransferModelExecutor.selectStyle(
-                        getKoin().getProperty(getString(R.string.koinStyle))!!,
-                        styleNumber,
-                        scaledBitmap,
-                        activity!!
-                    )
-
-                    viewModel.setTheSeekBarProgress(styleNumber / 0.2F)*/
-                    //styleTransferModelExecutor.selectVideoQuality(200)
+                    qualityNumber = progress
 
                     // Disable UI buttons
                     enableControls(false)
@@ -386,10 +385,12 @@ class StyleTransferFragment :
                     mainScope.async(inferenceThread) {
                         styleTransferModelExecutor.close()
                         isExecutorInitialized = false
-                        //getKoin().setProperty(getString(R.string.koinUseGpu), isChecked)
 
                         // Because we used factory at koin module here we get a new instance of object
                         styleTransferModelExecutor = get()
+                        if (viewModel.cpuGpu == "false") {
+                            styleTransferModelExecutor.selectVideoQuality(viewModel.seekBarQuality)
+                        }
 
                         // Select style to init the interpreterpredict result
                         styleTransferModelExecutor.selectStyle(
@@ -399,35 +400,41 @@ class StyleTransferFragment :
                             activity!!
                         )
 
-                        //styleTransferModelExecutor = StyleTransferModelExecutor(activity!!, useGPU)
-
                         //Select video quality
-                        styleTransferModelExecutor.selectVideoQuality(200)
+                        //styleTransferModelExecutor.selectVideoQuality(viewModel.seekBarQuality)
                         binding.progressBar.visibility = View.INVISIBLE
                         isExecutorInitialized = true
                         // Re-enable control buttons
                         activity!!.runOnUiThread { enableControls(true) }
                     }
 
+                    viewModel.setTheSeekBarQuality(qualityNumber)
                 }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                /*Toast.makeText(
-                    activity!!,
-                    "Style blending is: " + ((1f - styleNumber) * 100).roundToInt()
-                        .toString() + "%",
-                    Toast.LENGTH_SHORT
-                ).show()*/
+
+                when (qualityNumber) {
+                    0 -> Toast.makeText(
+                        activity!!,
+                        "Video quality is: Low",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    5 -> Toast.makeText(
+                        activity!!,
+                        "Video quality is: High",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
             }
         })
     }
 
     private fun setUpSeekBarStyle() {
         // Setting up Seekbar for style inheritance
-
         binding.seekBarStyle.progress = viewModel.seekBarProgress.toInt();
         Log.i("SeekBarProgress", binding.seekBarStyle.progress.toString())
 
