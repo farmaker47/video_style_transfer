@@ -247,8 +247,8 @@ class StyleTransferFragment :
                 //Log.i("SWITCH_CHECKED", binding.switchUseGpu.isChecked.toString())
 
                 // Disable UI buttons
-                enableControls(false)
                 viewModel.setTypeCpuGpu(binding.switchUseGpu.isChecked.toString())
+                enableControls(false)
                 binding.progressBar.visibility = View.VISIBLE
 
                 // Reinitialize TF Lite models with new GPU setting
@@ -270,7 +270,11 @@ class StyleTransferFragment :
                     binding.progressBar.visibility = View.INVISIBLE
                     isExecutorInitialized = true
                     // Re-enable control buttons
-                    activity!!.runOnUiThread { enableControls(true) }
+                    activity!!.runOnUiThread {
+                        enableControls(true)
+                        // Switch bar quality on/off
+                        binding.seekBarQuality.isEnabled = !binding.switchUseGpu.isChecked
+                    }
                 }
             }
 
@@ -322,6 +326,7 @@ class StyleTransferFragment :
         binding.switchUseGpu.isEnabled = enable
         binding.seekBarStyle.isEnabled = enable
         binding.seekBarQuality.isEnabled = enable
+
         if (enable) {
             binding.recyclerViewStyles.visibility = View.VISIBLE
         } else {
@@ -340,6 +345,9 @@ class StyleTransferFragment :
         startBackgroundThread()
         setUpSeekBarStyle()
         setUpSeekBarQuality()
+
+        // SeekbarQuality on/off
+        binding.seekBarQuality.isEnabled = !binding.switchUseGpu.isChecked
     }
 
     private fun setUpSeekBarQuality() {
