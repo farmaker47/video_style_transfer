@@ -183,7 +183,7 @@ class StyleTransferModelExecutor(
     }
 
     fun selectVideoQuality(value: Int) {
-        when(value) {
+        when (value) {
             0 -> initializeIntrpreterForVideoQuality(200)
             1 -> initializeIntrpreterForVideoQuality(240)
             2 -> initializeIntrpreterForVideoQuality(260)
@@ -339,8 +339,13 @@ class StyleTransferModelExecutor(
     }
 
     fun close() {
-        //interpreterPredict.close()
+        interpreterPredict.close()
         //interpreterTransform.close()
+    }
+
+    fun closeEverything() {
+        interpreterPredict.close()
+        interpreterTransform.close()
         gpuDelegate.close()
     }
 }

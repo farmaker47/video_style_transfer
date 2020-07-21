@@ -4,10 +4,11 @@ import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.annotation.UiThread
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-//import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 
 class MLExecutionViewModel(
@@ -79,24 +80,25 @@ class MLExecutionViewModel(
         context: Context,
         contentBitmap: Bitmap,
         styleFilePath: String,
-        styleTransferModelExecutor: StyleTransferModelExecutor,
-        inferenceThread: ExecutorCoroutineDispatcher
+        styleTransferModelExecutor: StyleTransferModelExecutor
     ) {
-        viewModelScopeJob.launch {
+
+        //inferenceExecute(styleTransferModelExecutor, contentBitmap, styleFilePath, context)
+        viewModelScope.launch {
             inferenceExecute(styleTransferModelExecutor, contentBitmap, styleFilePath, context)
         }
 
     }
 
-    private fun inferenceExecute(
+
+    private suspend fun inferenceExecute(
         styleTransferModelExecutor: StyleTransferModelExecutor,
         contentBitmap: Bitmap,
         styleFilePath: String,
         context: Context
-    ) {
+    ) = withContext(Dispatchers.IO){
         _inferenceDone.postValue(false)
-        val result =
-            styleTransferModelExecutor.execute(contentBitmap, styleFilePath, context)
+        val result = styleTransferModelExecutor.execute(contentBitmap, styleFilePath, context)
         _totalTimeInference.postValue(result.totalExecutionTime.toInt())
         _styledBitmap.postValue(result)
         _inferenceDone.postValue(true)
@@ -105,7 +107,7 @@ class MLExecutionViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelJob.cancel()
-        styleTransferModelExecutorObject.close()
+        styleTransferModelExecutorObject.closeEverything()
     }
 
 }

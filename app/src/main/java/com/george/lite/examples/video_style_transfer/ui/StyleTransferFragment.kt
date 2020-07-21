@@ -252,7 +252,7 @@ class StyleTransferFragment :
                 binding.progressBar.visibility = View.VISIBLE
 
                 // Reinitialize TF Lite models with new GPU setting
-                mainScope.async(inferenceThread) {
+                fragmentScope.launch {
                     styleTransferModelExecutor.close()
                     isExecutorInitialized = false
                     getKoin().setProperty(getString(R.string.koinUseGpu), isChecked)
@@ -382,7 +382,7 @@ class StyleTransferFragment :
                     binding.progressBar.visibility = View.VISIBLE
 
                     // Reinitialize TF Lite models with new GPU setting
-                    mainScope.async(inferenceThread) {
+                    fragmentScope.launch {
                         styleTransferModelExecutor.close()
                         isExecutorInitialized = false
 
@@ -799,8 +799,7 @@ class StyleTransferFragment :
 
         if (doneInference && isExecutorInitialized) {
             viewModel.onApplyStyle(
-                activity!!, scaledBitmap, "zkate.jpg", styleTransferModelExecutor,
-                inferenceThread
+                activity!!, scaledBitmap, "zkate.jpg", styleTransferModelExecutor
             )
         }
 
