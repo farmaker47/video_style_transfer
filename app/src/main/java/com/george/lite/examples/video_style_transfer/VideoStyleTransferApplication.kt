@@ -29,7 +29,7 @@ class VideoStyleTransferApplication : Application() {
 
     private fun delayedInit() {
         applicationScope.launch {
-            Thread.sleep(4_000)
+            Thread.sleep(1_000)
         }
     }
 }
