@@ -206,7 +206,7 @@ class StyleTransferModelExecutor(
         )
     }
 
-    fun execute(
+    suspend fun execute(
         contentImageBitmap: Bitmap,
         styleImageName: String,
         context: Context
