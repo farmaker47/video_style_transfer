@@ -29,6 +29,7 @@ The on-device model comes with several benefits. It is:
 - Privacy-friendly: The user data never leaves the device and this eliminates any privacy restrictions.
 
 **Details how application was developed**
+
 [Medium article](https://medium.com/@farmaker47/android-implementation-of-video-style-transfer-with-tensorflow-lite-models-9338a6d2a3ea)
 
 **Screenshot**
