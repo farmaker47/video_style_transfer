@@ -26,7 +26,7 @@ class StyleTransferModelExecutor(
     context: Context,
     private var useGPU: Boolean
 ) {
-    private var gpuDelegate: GpuDelegate = GpuDelegate()
+    private lateinit var gpuDelegate: GpuDelegate
     private var numberThreads = 4
 
     private lateinit var interpreterPredict: Interpreter
@@ -316,6 +316,15 @@ class StyleTransferModelExecutor(
         if (useGpu) {
             gpuDelegate = GpuDelegate()
             tfliteOptions.addDelegate(gpuDelegate)
+
+            // Create the Delegate instance.
+            /*try {
+                gpuDelegate = HexagonDelegate(context)
+                tfliteOptions.addDelegate(gpuDelegate)
+            } catch (e: Exception) {
+                // Hexagon delegate is not supported on this device.
+                Log.e("HEXAGON", e.toString())
+            }*/
 
             //val delegate =
             //GpuDelegate(GpuDelegate.Options().setQuantizedModelsAllowed(true))

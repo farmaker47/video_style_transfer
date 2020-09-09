@@ -89,7 +89,6 @@ class MLExecutionViewModel(
         }
     }
 
-
     private suspend fun inferenceExecute(
         styleTransferModelExecutor: StyleTransferModelExecutor,
         contentBitmap: Bitmap,
