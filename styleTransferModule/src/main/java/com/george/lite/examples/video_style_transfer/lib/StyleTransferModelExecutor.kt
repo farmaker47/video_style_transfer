@@ -331,6 +331,7 @@ class StyleTransferModelExecutor(
         }
 
         tfliteOptions.setNumThreads(numberThreads)
+        //tfliteOptions.setUseXNNPACK(true)
         return Interpreter(loadModelFile(context, modelName), tfliteOptions)
     }
 
